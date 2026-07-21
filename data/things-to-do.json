@@ -1,12 +1,33 @@
 {
   "categories": [
-    { "id": "highlights", "title": "Highlights en bezienswaardigheden" },
-    { "id": "beaches", "title": "Stranden" },
-    { "id": "activities", "title": "Activiteiten" },
-    { "id": "food", "title": "Restaurants en ijssalons" },
-    { "id": "shops", "title": "Winkels" },
-    { "id": "kids", "title": "Activiteiten met kinderen" },
-    { "id": "practical", "title": "Praktische tips" }
+    {
+      "id": "highlights",
+      "title": "Highlights en bezienswaardigheden"
+    },
+    {
+      "id": "beaches",
+      "title": "Stranden"
+    },
+    {
+      "id": "activities",
+      "title": "Activiteiten"
+    },
+    {
+      "id": "food",
+      "title": "Restaurants en ijssalons"
+    },
+    {
+      "id": "shops",
+      "title": "Winkels"
+    },
+    {
+      "id": "kids",
+      "title": "Activiteiten met kinderen"
+    },
+    {
+      "id": "practical",
+      "title": "Praktische tips"
+    }
   ],
   "locations": [
     {
@@ -31,44 +52,428 @@
     {
       "id": "carvoeiro",
       "tips": {
+        "highlights": [
+          {
+            "title": "Algar Seco en de Carvoeiro Boardwalk",
+            "text": "Een korte houten wandelroute langs goudkleurige kliffen, natuurlijke poelen en grillige rotsformaties. Loop zeker naar de openingen en uitzichtpunten rond Algar Seco.",
+            "note": "Ga aan het einde van de middag en blijf voor de zonsondergang. Draag schoenen met grip als je tussen de rotsen afdaalt.",
+            "familyFriendly": true,
+            "mapUrl": "https://www.google.com/maps/search/?api=1&query=Algar+Seco+Carvoeiro"
+          },
+          {
+            "title": "Seven Hanging Valleys Trail",
+            "text": "De bekendste kustwandeling van de omgeving voert langs hoge kliffen, diepe inhammen, vuurtoren Alfanzina, Benagil en Praia da Marinha. Voor een gezinswandeling is een deeltraject vaak prettiger dan de volledige heen-en-terugroute.",
+            "note": "Vertrek vroeg, neem ruim water mee en vermijd het heetste deel van de dag. De route heeft weinig schaduw en loopt dicht langs klifranden.",
+            "familyFriendly": true,
+            "mapUrl": "https://www.google.com/maps/search/?api=1&query=Seven+Hanging+Valleys+Trail"
+          },
+          {
+            "title": "Praia da Marinha vanaf het uitzichtpunt",
+            "text": "Ook zonder lange stranddag is het uitzicht boven Praia da Marinha een bezoek waard. Vanaf de klif zie je de beroemde kalkstenen bogen en rotsformaties.",
+            "note": "Combineer het uitzichtpunt met een kort stuk van de Seven Hanging Valleys Trail. Kom bij voorkeur vóór 10.00 uur.",
+            "familyFriendly": true,
+            "mapUrl": "https://www.google.com/maps/search/?api=1&query=Praia+da+Marinha"
+          },
+          {
+            "title": "Benagil-grot vanaf zee",
+            "text": "Tijdens een boottocht zie je niet alleen de beroemde grot, maar ook tientallen kleinere grotten, doorgangen en verborgen stranden tussen Carvoeiro en Praia da Marinha.",
+            "note": "Kies een erkende aanbieder en controleer de zeecondities. Zwem niet zelfstandig naar de grot; toegang en uitstappen zijn gereguleerd.",
+            "familyFriendly": true,
+            "url": "https://carvoeirotours.com/en/",
+            "mapUrl": "https://www.google.com/maps/search/?api=1&query=Benagil+Cave"
+          },
+          {
+            "title": "Ferragudo",
+            "text": "Een sfeervol vissersdorp aan de overkant van de rivier bij Portimão, met witte huizen, smalle straatjes, een gezellig plein en uitzicht op de haven.",
+            "note": "Leuk voor een rustige namiddag en diner. Combineer het dorp met Praia Grande of een korte wandeling naar Castelo de São João do Arade.",
+            "familyFriendly": true,
+            "mapUrl": "https://www.google.com/maps/search/?api=1&query=Ferragudo+Portugal"
+          },
+          {
+            "title": "Silves",
+            "text": "Historisch stadje landinwaarts met een opvallend rood kasteel, kathedraal en rustige straatjes. Een mooie afwisseling na meerdere stranddagen.",
+            "note": "Bezoek het kasteel in de ochtend en lunch daarna in het centrum. In de zomer kan het er zeer warm worden.",
+            "familyFriendly": true,
+            "mapUrl": "https://www.google.com/maps/search/?api=1&query=Castelo+de+Silves"
+          }
+        ],
         "beaches": [
           {
             "title": "Praia de Carvoeiro",
-            "text": "Klein strand in het dorp — korte testtip.",
-            "familyFriendly": true
+            "text": "Klein en levendig dorpsstrand met direct daarachter cafés, restaurants en winkels. Vooral geschikt voor een paar uur strand in combinatie met het centrum.",
+            "note": "In het hoogseizoen snel druk. Kom vroeg of juist later op de middag en reken niet op parkeren direct aan het strand.",
+            "familyFriendly": true,
+            "mapUrl": "https://www.google.com/maps/search/?api=1&query=Praia+de+Carvoeiro"
+          },
+          {
+            "title": "Praia do Vale de Centeanes",
+            "text": "Langgerekt strand tussen hoge kliffen, iets rustiger dan het dorpsstrand. Het is ook een logisch begin- of eindpunt voor een deel van de Seven Hanging Valleys Trail.",
+            "note": "Let op de getijden en blijf uit de buurt van de voet van de kliffen. Er zijn trappen naar het strand.",
+            "familyFriendly": true,
+            "mapUrl": "https://www.google.com/maps/search/?api=1&query=Praia+do+Vale+de+Centeanes"
+          },
+          {
+            "title": "Praia do Carvalho",
+            "text": "Een kleine fotogenieke baai die je bereikt via een uitgehakte tunnel en trappen door de rots. Het water is vaak helder en aantrekkelijk om te snorkelen.",
+            "note": "Niet geschikt met een buggy en minder handig met veel bagage. Ga vroeg vanwege de beperkte ruimte en parkeermogelijkheden.",
+            "familyFriendly": true,
+            "mapUrl": "https://www.google.com/maps/search/?api=1&query=Praia+do+Carvalho"
+          },
+          {
+            "title": "Praia da Marinha",
+            "text": "Een van de spectaculairste stranden van de Algarve, omringd door rotsbogen en hoge kliffen. Mooi voor zwemmen, snorkelen en fotografie.",
+            "note": "De toegang bestaat uit een lange trap. De parkeerplaats loopt in de zomer vroeg vol; neem voldoende drinken en zonbescherming mee.",
+            "familyFriendly": true,
+            "mapUrl": "https://www.google.com/maps/search/?api=1&query=Praia+da+Marinha"
+          },
+          {
+            "title": "Praia Grande bij Ferragudo",
+            "text": "Ruimer en overzichtelijker familiestrand dan veel kleine baaien rond Carvoeiro. Er zijn strandrestaurants en meestal meer plek om te spelen.",
+            "note": "Een goede keuze voor een ontspannen stranddag met kinderen, eventueel gecombineerd met Ferragudo.",
+            "familyFriendly": true,
+            "mapUrl": "https://www.google.com/maps/search/?api=1&query=Praia+Grande+Ferragudo"
+          },
+          {
+            "title": "Praia dos Caneiros",
+            "text": "Stijlvol strand bij Ferragudo met uitzicht op de markante rots Leixão da Gaivota. Mooie plek voor een strandmiddag en zonsondergang.",
+            "note": "In juli en augustus kan het druk zijn. Reserveer vooraf wanneer je bij het strandrestaurant wilt lunchen.",
+            "familyFriendly": true,
+            "mapUrl": "https://www.google.com/maps/search/?api=1&query=Praia+dos+Caneiros"
+          }
+        ],
+        "activities": [
+          {
+            "title": "Boottocht langs Benagil en Praia da Marinha",
+            "text": "Vertrek vanaf Praia de Carvoeiro voor een compacte tocht langs grotten en rotsbogen. Het vertrek vanaf het dorpsstrand maakt dit gemakkelijk in te passen in een halve dag.",
+            "note": "Een vroege tocht heeft vaak rustiger water en minder verkeer bij de grotten. Controleer vooraf de annuleringsvoorwaarden bij harde wind.",
+            "familyFriendly": true,
+            "url": "https://carvoeirotours.com/en/",
+            "mapUrl": "https://www.google.com/maps/search/?api=1&query=Carvoeiro+boat+tours"
+          },
+          {
+            "title": "Een deel van de Seven Hanging Valleys Trail lopen",
+            "text": "Loop bijvoorbeeld van Vale de Centeanes richting de vuurtoren van Alfanzina en keer daarna terug. Zo krijg je de mooiste uitzichten zonder een volledige lange wandeling.",
+            "note": "Gebruik stevige schoenen. Neem voor ieder gezinslid water mee en blijf ruim van de klifrand.",
+            "familyFriendly": true,
+            "mapUrl": "https://www.google.com/maps/search/?api=1&query=Farol+de+Alfanzina"
+          },
+          {
+            "title": "Kajakken of suppen met gids",
+            "text": "Een actieve manier om kleine grotten en rotsbogen van dichtbij te bekijken. Een begeleide tocht is veiliger en sluit beter aan op de lokale regels dan zelfstandig varen.",
+            "note": "Alleen boeken bij rustige zee en een aanbieder die zwemvesten en veiligheidsinstructies verzorgt.",
+            "familyFriendly": true,
+            "mapUrl": "https://www.google.com/maps/search/?api=1&query=guided+kayak+Benagil"
+          },
+          {
+            "title": "Slide & Splash",
+            "text": "Groot waterpark bij Lagoa met glijbanen, zwembaden en attracties voor verschillende leeftijden. Voor kinderen van 10 en 12 is dit een volwaardige dagactiviteit.",
+            "note": "Koop tickets vooraf en arriveer rond openingstijd. Neem slippers, zonnebrand en eventueel waterschoenen mee.",
+            "familyFriendly": true,
+            "url": "https://www.slidesplash.com/en/",
+            "mapUrl": "https://www.google.com/maps/search/?api=1&query=Slide+and+Splash+Lagoa"
+          },
+          {
+            "title": "Golf of minigolf",
+            "text": "Voor een rustige ochtend of namiddag zijn er meerdere golfbanen rond Carvoeiro. Een laagdrempeliger gezinsoptie is minigolf in de omgeving.",
+            "note": "Kies in de zomer een vroeg tijdstip of de avond vanwege de hitte.",
+            "familyFriendly": true,
+            "mapUrl": "https://www.google.com/maps/search/?api=1&query=minigolf+Carvoeiro"
+          },
+          {
+            "title": "Dagtrip naar Zoomarine",
+            "text": "Combinatie van waterattracties, presentaties en dierverblijven bij Guia. Vooral geschikt wanneer jullie een volledige dag buiten Carvoeiro willen plannen.",
+            "note": "Het park is groot: bepaal vooraf welke onderdelen prioriteit hebben en neem zwemkleding mee.",
+            "familyFriendly": true,
+            "url": "https://www.zoomarine.pt/en/activities/",
+            "mapUrl": "https://www.google.com/maps/search/?api=1&query=Zoomarine+Algarve"
           }
         ],
         "food": [
           {
-            "title": "Testrestaurant",
-            "text": "Placeholder voor een restauranttip.",
-            "url": "https://example.com"
+            "title": "Earth Shop & Café",
+            "text": "Lichte en eigentijdse plek voor ontbijt, brunch of lunch, met koffie, smoothies, salades en vegetarische opties. De winkel verkoopt daarnaast lokale en duurzame producten.",
+            "note": "Goede keuze voor een gezonde lunch of rustig ontbijt. Controleer dezelfde dag de actuele keukentijden.",
+            "familyFriendly": true,
+            "mapUrl": "https://www.google.com/maps/search/?api=1&query=Earth+Shop+and+Cafe+Carvoeiro"
+          },
+          {
+            "title": "Levels Carvoeiro",
+            "text": "Moderne zaak direct aan het dorpsplein met beach bar, restaurant en rooftop. Handig voor lunch, diner of een drankje met uitzicht op het strand.",
+            "note": "Voor de rooftop of een tafel met goed uitzicht is reserveren verstandig.",
+            "familyFriendly": true,
+            "url": "https://levelscarvoeiro.com/",
+            "mapUrl": "https://www.google.com/maps/search/?api=1&query=Levels+Carvoeiro"
+          },
+          {
+            "title": "Taste Restaurante",
+            "text": "Verzorgd restaurant met een moderne, internationale keuken en een informele sfeer. Geschikt voor een avond waarop jullie iets uitgebreider willen eten.",
+            "note": "Reserveer vooraf in het hoogseizoen. Het restaurant is volgens de eigen website op dinsdag gesloten.",
+            "familyFriendly": true,
+            "url": "https://www.tastecarvoeiro.com/",
+            "mapUrl": "https://www.google.com/maps/search/?api=1&query=Taste+Restaurante+Carvoeiro"
+          },
+          {
+            "title": "Boneca Bar",
+            "text": "Eenvoudige bar en restaurant tussen de rotsformaties van Algar Seco. De bijzondere ligging en het terras zijn de belangrijkste redenen om hier te stoppen.",
+            "note": "Het meest geschikt voor lunch, een drankje of een korte pauze tijdens de boardwalk; ga vooral voor de locatie en sfeer.",
+            "familyFriendly": true,
+            "mapUrl": "https://www.google.com/maps/search/?api=1&query=Boneca+Bar+Carvoeiro"
+          },
+          {
+            "title": "O Stop",
+            "text": "Informele strandplek bij Vale de Centeanes, handig na een wandeling of strandbezoek. Vooral aantrekkelijk vanwege de ligging direct bij zee.",
+            "note": "Combineer met Vale de Centeanes of als eindpunt van een korte kustwandeling.",
+            "familyFriendly": true,
+            "mapUrl": "https://www.google.com/maps/search/?api=1&query=O+Stop+Carvoeiro"
+          },
+          {
+            "title": "Rei das Praias",
+            "text": "Bekend strandrestaurant aan Praia dos Caneiros met vis, zeevruchten en een mooi uitzicht. Dit is meer een bijzondere lunchplek dan een voordelige snelle maaltijd.",
+            "note": "Reserveer ruim vooraf en combineer met een middag op Praia dos Caneiros.",
+            "familyFriendly": true,
+            "mapUrl": "https://www.google.com/maps/search/?api=1&query=Rei+das+Praias+Ferragudo"
+          },
+          {
+            "title": "Gelados & Companhia",
+            "text": "Populaire ijssalon in Carvoeiro voor een ijsje na het diner of tijdens een wandeling door het centrum.",
+            "note": "In de avond kan er een rij staan, maar de doorloop is meestal vlot.",
+            "familyFriendly": true,
+            "mapUrl": "https://www.google.com/maps/search/?api=1&query=Gelados+e+Companhia+Carvoeiro"
+          },
+          {
+            "title": "Fábrica Velha",
+            "text": "Laagdrempelige plek voor koffie, gebak, ontbijt of een lichte maaltijd. Handig voor een betaalbare pauze in of nabij het centrum.",
+            "note": "Geschikt als snelle stop en doorgaans eenvoudiger dan een uitgebreid restaurantbezoek.",
+            "familyFriendly": true,
+            "mapUrl": "https://www.google.com/maps/search/?api=1&query=Fabrica+Velha+Carvoeiro"
+          }
+        ],
+        "shops": [
+          {
+            "title": "Earth Shop",
+            "text": "Kleine lifestyle- en delicatessenwinkel bij het café, met lokale producten, wijn, cadeaus, keramiek en duurzamere souvenirs.",
+            "note": "Een betere plek voor een origineel cadeautje dan de algemene souvenirwinkels in het centrum.",
+            "familyFriendly": true,
+            "mapUrl": "https://www.google.com/maps/search/?api=1&query=Earth+Shop+and+Cafe+Carvoeiro"
+          },
+          {
+            "title": "Winkeltjes rond Rua do Barranco en het dorpsplein",
+            "text": "In het centrum vind je kleine kleding-, strand- en souvenirwinkels. Leuk om na het diner even doorheen te lopen, maar verwacht geen groot winkelgebied.",
+            "note": "Voor bijzondere aankopen is het aanbod beperkt; zie dit vooral als een ontspannen avondwandeling.",
+            "familyFriendly": true,
+            "mapUrl": "https://www.google.com/maps/search/?api=1&query=Rua+do+Barranco+Carvoeiro"
+          },
+          {
+            "title": "Lagoa en Algarve Shopping",
+            "text": "Voor boodschappen of uitgebreider winkelen zijn Lagoa en het grotere Algarve Shopping bij Guia praktischer dan Carvoeiro zelf.",
+            "note": "Algarve Shopping heeft veel winkels en gratis parkeergelegenheid, maar ligt op enige rijafstand.",
+            "familyFriendly": true,
+            "mapUrl": "https://www.google.com/maps/search/?api=1&query=Algarve+Shopping+Guia"
+          }
+        ],
+        "kids": [
+          {
+            "title": "Grottentocht vanaf het strand",
+            "text": "De kleine boten die vanaf Praia de Carvoeiro vertrekken maken de kust en grotten heel tastbaar voor kinderen. De tocht is actief genoeg zonder een hele dag te kosten.",
+            "note": "Een plek voorin kan meer opspattend water betekenen. Neem een dun vestje of droge tas mee.",
+            "familyFriendly": true,
+            "url": "https://carvoeirotours.com/en/",
+            "mapUrl": "https://www.google.com/maps/search/?api=1&query=Carvoeiro+boat+tours"
+          },
+          {
+            "title": "Rotsen ontdekken bij Algar Seco",
+            "text": "De boardwalk is eenvoudig, terwijl de trappen en doorgangen bij de rotsen het bezoek avontuurlijk maken voor kinderen van 10 en 12.",
+            "note": "Blijf bij de kinderen in de buurt van open randen en gladde rotsen. Ga niet naar beneden bij hoge golven.",
+            "familyFriendly": true,
+            "mapUrl": "https://www.google.com/maps/search/?api=1&query=Algar+Seco+Carvoeiro"
+          },
+          {
+            "title": "Snorkelen bij een rustige baai",
+            "text": "Praia do Carvalho en Praia da Marinha kunnen bij rustige zee mooi zijn om vanaf het strand te snorkelen.",
+            "note": "Alleen bij kalme omstandigheden, met toezicht en ruim uit de buurt van rotsen en bootroutes.",
+            "familyFriendly": true,
+            "mapUrl": "https://www.google.com/maps/search/?api=1&query=Praia+do+Carvalho"
+          },
+          {
+            "title": "Volle dag Slide & Splash",
+            "text": "Een goede afwisseling na wandelen en stranden. Met kinderen van 10 en 12 kun je hier gemakkelijk het grootste deel van de dag doorbrengen.",
+            "note": "Spreek vooraf een vaste ontmoetingsplek af en controleer per glijbaan de lengte- en veiligheidsregels.",
+            "familyFriendly": true,
+            "url": "https://www.slidesplash.com/en/",
+            "mapUrl": "https://www.google.com/maps/search/?api=1&query=Slide+and+Splash+Lagoa"
+          },
+          {
+            "title": "Avond in Ferragudo",
+            "text": "Slenter door het dorp, eet op of rond het plein en sluit af met een wandeling langs het water. Rustiger en overzichtelijker dan een grote badplaats.",
+            "note": "Combineer met Praia Grande zodat de autorit onderdeel wordt van één complete middag en avond.",
+            "familyFriendly": true,
+            "mapUrl": "https://www.google.com/maps/search/?api=1&query=Ferragudo+Portugal"
+          }
+        ],
+        "practical": [
+          {
+            "title": "Parkeren in Carvoeiro",
+            "text": "Parkeren vlak bij het strand is beperkt. Kies in het hoogseizoen liever een grotere parkeerplek hoger in het dorp en loop het laatste stuk naar beneden.",
+            "note": "Kom vóór de grootste drukte en vermijd onnodig rondjes rijden door de smalle centrumstraten.",
+            "mapUrl": "https://www.google.com/maps/search/?api=1&query=parking+Carvoeiro"
+          },
+          {
+            "title": "Begin vroeg met populaire stranden",
+            "text": "Praia da Marinha, Benagil en Praia do Carvalho hebben beperkte parkeerruimte en zijn in de zomer snel vol.",
+            "note": "Richt op aankomst vóór 09.30 uur of kies juist het einde van de middag.",
+            "mapUrl": "https://www.google.com/maps/search/?api=1&query=Praia+da+Marinha+parking"
+          },
+          {
+            "title": "Veiligheid op de kliffen",
+            "text": "Blijf op gemarkeerde paden en houd afstand van de rand. Kalkstenen kliffen kunnen afbrokkelen en uitzichtpunten hebben niet overal een hek.",
+            "note": "Laat kinderen niet vooruit rennen op de wandelpaden en ga niet onder overhangende kliffen zitten.",
+            "familyFriendly": true
+          },
+          {
+            "title": "Benagil-regels en zeecondities",
+            "text": "De toegang tot de Benagil-grot is gereguleerd. Zwemmen naar de grot en uitstappen op het strand in de grot zijn niet toegestaan.",
+            "note": "Boek een erkende boot- of begeleide kajaktocht en accepteer dat een tocht bij onrustige zee kan worden aangepast of geannuleerd.",
+            "familyFriendly": true,
+            "mapUrl": "https://www.google.com/maps/search/?api=1&query=Benagil+Cave"
+          },
+          {
+            "title": "Hitte tijdens wandelingen",
+            "text": "De kustpaden bieden nauwelijks schaduw. In juli en augustus loopt de temperatuur snel op.",
+            "note": "Wandel vroeg, draag een pet en stevige schoenen en neem meer water mee dan je normaal verwacht.",
+            "familyFriendly": true
+          },
+          {
+            "title": "Reserveer bijzondere restaurants",
+            "text": "Populaire terrassen, rooftoplocaties en strandrestaurants zijn in het hoogseizoen vaak vol.",
+            "note": "Reserveer vooral voor Levels, Taste en Rei das Praias; controleer vlak voor vertrek de actuele openingstijden.",
+            "familyFriendly": true
+          },
+          {
+            "title": "Plan niet te veel op één dag",
+            "text": "De afstanden zijn klein, maar parkeren, trappen naar stranden en zomerdrukte kosten tijd. Eén hoofdactiviteit plus strand en diner is meestal voldoende.",
+            "note": "Houd ruimte voor zwembadtijd bij de accommodatie en pas het programma aan op wind en zee.",
+            "familyFriendly": true
           }
         ]
       },
       "dayPlans": [
         {
-          "title": "Kustdag Carvoeiro",
+          "title": "De klassieke kustdag",
           "steps": [
             {
-              "time": "Ochtend",
+              "time": "08.30",
+              "title": "Seven Hanging Valleys Trail",
+              "text": "Loop vroeg een deel van de route vanaf Vale de Centeanes richting vuurtoren Alfanzina, of start bij Praia da Marinha."
+            },
+            {
+              "time": "11.30",
+              "title": "Praia da Marinha",
+              "text": "Bekijk eerst het uitzicht vanaf de klif en daal daarna af voor zwemmen en snorkelen."
+            },
+            {
+              "time": "14.00",
+              "title": "Late lunch",
+              "text": "Lunch bij O Stop, Earth Shop & Café of terug in Carvoeiro, afhankelijk van jullie route."
+            },
+            {
+              "time": "17.30",
+              "title": "Rust bij de villa",
+              "text": "Zwembad, douchen en even bijkomen van de wandeling en strandtijd."
+            },
+            {
+              "time": "19.30",
+              "title": "Algar Seco en boardwalk",
+              "text": "Wandel langs de kliffen wanneer het licht zachter wordt en bekijk de rotsformaties."
+            },
+            {
+              "time": "20.30",
+              "title": "Diner in Carvoeiro",
+              "text": "Kies bijvoorbeeld Levels of Taste en sluit af met een ijsje in het centrum."
+            }
+          ]
+        },
+        {
+          "title": "Boot, dorp en ontspannen middag",
+          "steps": [
+            {
+              "time": "09.00",
+              "title": "Boottocht naar Benagil",
+              "text": "Vertrek vanaf Praia de Carvoeiro voor een tocht langs grotten, bogen en Praia da Marinha."
+            },
+            {
+              "time": "11.00",
+              "title": "Koffie of brunch",
+              "text": "Ga naar Earth Shop & Café of neem iets aan het dorpsplein."
+            },
+            {
+              "time": "12.30",
               "title": "Praia de Carvoeiro",
-              "text": "Rustig strandbezoek met kinderen."
+              "text": "Blijf een paar uur op het dorpsstrand of ga terug naar de villa voor lunch en zwembad."
             },
             {
-              "time": "Lunch",
-              "title": "Lunch in het dorp",
-              "text": "Korte pauze in Carvoeiro centrum."
+              "time": "17.00",
+              "title": "Ferragudo",
+              "text": "Rijd naar Ferragudo, wandel door de straatjes en drink iets op het centrale plein."
             },
             {
-              "time": "Middag",
-              "title": "Boottocht",
-              "text": "Placeholder voor een activiteit."
+              "time": "19.30",
+              "title": "Diner aan de rivier of bij het strand",
+              "text": "Eet in Ferragudo of reserveer bij Rei das Praias aan Praia dos Caneiros."
+            }
+          ]
+        },
+        {
+          "title": "Gezinsdag met waterpret",
+          "steps": [
+            {
+              "time": "09.30",
+              "title": "Vertrek naar Slide & Splash",
+              "text": "Ga rond openingstijd zodat jullie de populairste glijbanen vóór de grootste drukte kunnen doen."
             },
             {
-              "time": "Avond",
-              "title": "Terug naar Casa Ben",
-              "text": "Zwembad of barbecue bij de villa."
+              "time": "10.00–17.00",
+              "title": "Slide & Splash",
+              "text": "Maak er een volledige parkdag van en las voldoende pauzes, drinken en zonnebrandmomenten in."
+            },
+            {
+              "time": "18.00",
+              "title": "Rust en omkleden",
+              "text": "Terug naar de accommodatie voor zwembad, douche en een rustige pauze."
+            },
+            {
+              "time": "20.00",
+              "title": "Eenvoudig diner in Carvoeiro",
+              "text": "Kies een informeel restaurant in het centrum en sluit af met ijs."
+            }
+          ]
+        },
+        {
+          "title": "Cultuur en kust",
+          "steps": [
+            {
+              "time": "09.00",
+              "title": "Silves",
+              "text": "Bezoek het kasteel en wandel door het historische centrum voordat het heet wordt."
+            },
+            {
+              "time": "12.30",
+              "title": "Lunch in Silves of Lagoa",
+              "text": "Kies een rustige lunch en rijd daarna terug richting kust."
+            },
+            {
+              "time": "15.00",
+              "title": "Praia Grande",
+              "text": "Ontspan op het ruime familiestrand bij Ferragudo."
+            },
+            {
+              "time": "18.30",
+              "title": "Wandeling door Ferragudo",
+              "text": "Loop via het plein en de witte straatjes richting de rivier."
+            },
+            {
+              "time": "20.00",
+              "title": "Diner in Ferragudo",
+              "text": "Sluit de dag af in het dorp of aan Praia dos Caneiros."
             }
           ]
         }
