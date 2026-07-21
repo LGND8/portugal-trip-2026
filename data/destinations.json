@@ -1,20 +1,39 @@
 [
   {
-    "id": "lissabon",
-    "name": "Lissabon",
-    "description": "Start van onze reis — trams, miradouros en pastel de nata.",
-    "dates": "12–15 juli 2026"
-  },
-  {
     "id": "odemira",
     "name": "Odemira",
     "description": "Rust in het Alentejo — stranden, natuur en lokale markten.",
-    "dates": "16–19 juli 2026"
+    "dates": "20–22 juli 2026",
+    "nights": 2,
+    "accommodation": "Quinta do Chocalhinho Agroturismo & SPA",
+    "address": "Bemposta, Odemira (Alentejo)",
+    "travel": "Vlucht Transavia vanuit Eindhoven, aankomst 20 juli 18:05 op vliegveld Lissabon. Daarna met huurauto naar Odemira."
   },
   {
     "id": "carvoeiro",
     "name": "Carvoeiro",
-    "description": "Afsluiting aan de Algarve — kliffen, baaitjes en zee.",
-    "dates": "19–23 juli 2026"
+    "description": "Algarve — kliffen, baaitjes en zee.",
+    "dates": "22–29 juli 2026",
+    "nights": 7,
+    "accommodation": "Casa Ben",
+    "address": "45 Quinta dos Salicos, 8400-422 Carvoeiro"
+  },
+  {
+    "id": "praia-del-rey",
+    "name": "Praia del Rey",
+    "description": "Westkust — appartement met terras en uitzicht op zee.",
+    "dates": "29 juli – 3 augustus 2026",
+    "nights": 5,
+    "accommodation": "Sunset Retreat, Praia del Rey C7",
+    "address": "Rua Josefa de Óbidos, 2510-451 Casal da Lagoa Seca"
+  },
+  {
+    "id": "lissabon",
+    "name": "Lissabon",
+    "description": "Afsluiting in de hoofdstad — trams, miradouros en pastel de nata.",
+    "dates": "3–6 augustus 2026",
+    "nights": 3,
+    "accommodation": "Terracotta Duplex",
+    "address": "Calçada da Cruz da Pedra 31, 1900-173 Lissabon"
   }
 ]
