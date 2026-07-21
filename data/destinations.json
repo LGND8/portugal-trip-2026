@@ -7,6 +7,8 @@
     "nights": 2,
     "accommodation": "Quinta do Chocalhinho Agroturismo & SPA",
     "address": "Bemposta, Odemira (Alentejo)",
+    "lat": 37.59699,
+    "lng": -8.61977,
     "travel": "Vlucht Transavia vanuit Eindhoven, aankomst 20 juli 18:05 op Lissabon Airport. Huurauto Goldcar (Kia Stonic, CI02HQ) opgehaald om 19:30. Daarna naar Odemira."
   },
   {
@@ -16,7 +18,9 @@
     "dates": "22–29 juli 2026",
     "nights": 7,
     "accommodation": "Casa Ben",
-    "address": "45 Quinta dos Salicos, 8400-422 Carvoeiro"
+    "address": "45 Quinta dos Salicos, 8400-422 Carvoeiro",
+    "lat": 37.10915,
+    "lng": -8.44183
   },
   {
     "id": "praia-del-rey",
@@ -25,7 +29,9 @@
     "dates": "29 juli – 3 augustus 2026",
     "nights": 5,
     "accommodation": "Sunset Retreat, Praia del Rey C7",
-    "address": "Rua Josefa de Óbidos, 2510-451 Casal da Lagoa Seca"
+    "address": "Rua Josefa de Óbidos, 2510-451 Casal da Lagoa Seca",
+    "lat": 39.39708,
+    "lng": -9.27342
   },
   {
     "id": "lissabon",
@@ -35,6 +41,8 @@
     "nights": 3,
     "accommodation": "Terracotta Duplex",
     "address": "Calçada da Cruz da Pedra 31, 1900-173 Lissabon",
+    "lat": 38.72152,
+    "lng": -9.1164,
     "travel": "Huurauto Goldcar (Kia Stonic, CI02HQ) ingeleverd op Lissabon Airport, 3 augustus 17:30."
   }
 ]

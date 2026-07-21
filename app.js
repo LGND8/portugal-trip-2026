@@ -1,5 +1,31 @@
 const container = document.getElementById("destinations");
 
+function buildMapEmbed(destination) {
+  let query;
+
+  if (destination.lat != null && destination.lng != null) {
+    query = `${destination.lat},${destination.lng}`;
+  } else if (destination.address) {
+    query = encodeURIComponent(destination.address);
+  } else {
+    return "";
+  }
+
+  const src = `https://www.google.com/maps?q=${query}&hl=nl&z=15&output=embed`;
+
+  return `
+    <div class="card-map">
+      <iframe
+        title="Kaart van ${destination.name}"
+        src="${src}"
+        loading="lazy"
+        referrerpolicy="no-referrer-when-downgrade"
+        allowfullscreen
+      ></iframe>
+    </div>
+  `;
+}
+
 function renderCard(destination) {
   const card = document.createElement("article");
   card.className = "card";
@@ -16,6 +42,7 @@ function renderCard(destination) {
   const travel = destination.travel
     ? `<p class="travel">${destination.travel}</p>`
     : "";
+  const map = buildMapEmbed(destination);
 
   card.innerHTML = `
     <h2>${destination.name}</h2>
@@ -25,6 +52,7 @@ function renderCard(destination) {
     ${nights}
     ${travel}
     <p>${destination.description}</p>
+    ${map}
   `;
   return card;
 }

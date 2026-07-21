@@ -33,7 +33,7 @@ body {
 
 .destinations {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 1.25rem;
 }
 
@@ -94,6 +94,21 @@ body {
   background: #f9f5f0;
   border-left: 3px solid #c0392b;
   border-radius: 0 6px 6px 0;
+}
+
+.card-map {
+  margin-top: 1rem;
+  border-radius: 8px;
+  overflow: hidden;
+  aspect-ratio: 16 / 10;
+  background: #eee;
+}
+
+.card-map iframe {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
 }
 
 .card p {
