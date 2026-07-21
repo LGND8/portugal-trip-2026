@@ -11,10 +11,56 @@
       <h1>Portugal Familievakantie 2026</h1>
     </header>
 
+    <nav class="tab-bar" role="tablist" aria-label="Hoofdnavigatie">
+      <button
+        type="button"
+        class="tab-btn is-active"
+        role="tab"
+        id="tab-btn-planning"
+        aria-controls="tab-planning"
+        aria-selected="true"
+        tabindex="0"
+        data-tab="planning"
+      >
+        Planning
+      </button>
+      <button
+        type="button"
+        class="tab-btn"
+        role="tab"
+        id="tab-btn-things-to-do"
+        aria-controls="tab-things-to-do"
+        aria-selected="false"
+        tabindex="-1"
+        data-tab="things-to-do"
+      >
+        Things to Do
+      </button>
+    </nav>
+
     <main class="main">
-      <section id="destinations" class="destinations" aria-live="polite">
-        <p class="loading">Bestemmingen laden…</p>
-      </section>
+      <div
+        id="tab-planning"
+        class="tab-panel"
+        role="tabpanel"
+        aria-labelledby="tab-btn-planning"
+      >
+        <section id="destinations" class="destinations" aria-live="polite">
+          <p class="loading">Bestemmingen laden…</p>
+        </section>
+      </div>
+
+      <div
+        id="tab-things-to-do"
+        class="tab-panel"
+        role="tabpanel"
+        aria-labelledby="tab-btn-things-to-do"
+        hidden
+      >
+        <div id="things-to-do" class="things-to-do">
+          <p class="loading">Tips laden…</p>
+        </div>
+      </div>
     </main>
 
     <script src="app.js"></script>

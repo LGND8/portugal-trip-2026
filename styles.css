@@ -25,10 +25,48 @@ body {
   font-weight: 700;
 }
 
+.tab-bar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  background: #fff;
+  border-bottom: 1px solid #e6ddd4;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+}
+
+.tab-btn {
+  min-height: 2.75rem;
+  border: 0;
+  border-radius: 999px;
+  background: #f5f0eb;
+  color: #444;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.tab-btn.is-active {
+  background: #c0392b;
+  color: #fff;
+}
+
+.tab-btn:focus-visible {
+  outline: 2px solid #e67e22;
+  outline-offset: 2px;
+}
+
 .main {
   max-width: 960px;
   margin: 0 auto;
   padding: 2rem 1.5rem 3rem;
+}
+
+.tab-panel[hidden] {
+  display: none;
 }
 
 .destinations {
@@ -204,6 +242,154 @@ body {
 }
 
 .card p {
+  margin: 0;
+  font-size: 0.9375rem;
+  color: #444;
+}
+
+.tips-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 2.75rem;
+  margin-top: 1rem;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  background: #f9f5f0;
+  color: #c0392b;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  text-align: center;
+  text-decoration: none;
+}
+
+.tips-link:focus-visible {
+  outline: 2px solid #e67e22;
+  outline-offset: 2px;
+}
+
+.things-to-do {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.tips-section {
+  scroll-margin-top: 5.5rem;
+  background: #fff;
+  border-radius: 12px;
+  padding: 1.25rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border-top: 4px solid #e67e22;
+}
+
+.tips-section-title {
+  margin: 0 0 1rem;
+  font-size: 1.25rem;
+  color: #c0392b;
+}
+
+.tips-empty {
+  margin: 0;
+  color: #666;
+  font-style: italic;
+}
+
+.tips-category + .tips-category,
+.tips-category + .day-plans,
+.day-plans + .tips-category {
+  margin-top: 1.25rem;
+}
+
+.tips-category-title {
+  margin: 0 0 0.75rem;
+  font-size: 1rem;
+  color: #1a1a1a;
+}
+
+.tips-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tip-item + .tip-item {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #eee;
+}
+
+.tip-title {
+  margin: 0 0 0.25rem;
+  font-size: 0.9375rem;
+}
+
+.tip-text,
+.tip-note,
+.tip-badge {
+  margin: 0.25rem 0 0;
+  font-size: 0.9375rem;
+  color: #444;
+}
+
+.tip-note {
+  color: #666;
+  font-size: 0.875rem;
+}
+
+.tip-badge {
+  color: #2e7d32;
+  font-weight: 600;
+}
+
+.tip-link {
+  color: #c0392b;
+}
+
+.day-plans {
+  display: grid;
+  gap: 1rem;
+}
+
+.day-plan {
+  padding: 1rem;
+  border-radius: 8px;
+  background: #f9f5f0;
+}
+
+.day-plan-title {
+  margin: 0 0 0.75rem;
+  font-size: 0.9375rem;
+  color: #c0392b;
+}
+
+.day-steps {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.day-step + .day-step {
+  margin-top: 0.875rem;
+  padding-top: 0.875rem;
+  border-top: 1px solid #e6ddd4;
+}
+
+.day-step-time {
+  margin: 0 0 0.25rem;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: #e67e22;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.day-step-title {
+  margin: 0 0 0.25rem;
+  font-size: 0.9375rem;
+}
+
+.day-step-text {
   margin: 0;
   font-size: 0.9375rem;
   color: #444;

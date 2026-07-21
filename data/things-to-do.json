@@ -1,0 +1,91 @@
+{
+  "categories": [
+    { "id": "highlights", "title": "Highlights en bezienswaardigheden" },
+    { "id": "beaches", "title": "Stranden" },
+    { "id": "activities", "title": "Activiteiten" },
+    { "id": "food", "title": "Restaurants en ijssalons" },
+    { "id": "shops", "title": "Winkels" },
+    { "id": "kids", "title": "Activiteiten met kinderen" },
+    { "id": "practical", "title": "Praktische tips" }
+  ],
+  "locations": [
+    {
+      "id": "odemira",
+      "tips": {
+        "highlights": [
+          {
+            "title": "Centrum Odemira",
+            "text": "Klein but charmant centrum — korte testtip."
+          }
+        ],
+        "practical": [
+          {
+            "title": "Parkeren",
+            "text": "Gratis parkeren bij de accommodatie.",
+            "note": "Check inchecktijden voor late aankomst."
+          }
+        ]
+      },
+      "dayPlans": []
+    },
+    {
+      "id": "carvoeiro",
+      "tips": {
+        "beaches": [
+          {
+            "title": "Praia de Carvoeiro",
+            "text": "Klein strand in het dorp — korte testtip.",
+            "familyFriendly": true
+          }
+        ],
+        "food": [
+          {
+            "title": "Testrestaurant",
+            "text": "Placeholder voor een restauranttip.",
+            "url": "https://example.com"
+          }
+        ]
+      },
+      "dayPlans": [
+        {
+          "title": "Kustdag Carvoeiro",
+          "steps": [
+            {
+              "time": "Ochtend",
+              "title": "Praia de Carvoeiro",
+              "text": "Rustig strandbezoek met kinderen."
+            },
+            {
+              "time": "Lunch",
+              "title": "Lunch in het dorp",
+              "text": "Korte pauze in Carvoeiro centrum."
+            },
+            {
+              "time": "Middag",
+              "title": "Boottocht",
+              "text": "Placeholder voor een activiteit."
+            },
+            {
+              "time": "Avond",
+              "title": "Terug naar Casa Ben",
+              "text": "Zwembad of barbecue bij de villa."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "lissabon",
+      "tips": {
+        "highlights": [
+          {
+            "title": "Tram 28",
+            "text": "Klassieke route door de bairros — korte testtip.",
+            "mapUrl": "https://maps.google.com"
+          }
+        ]
+      },
+      "dayPlans": []
+    }
+  ]
+}

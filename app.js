@@ -1,4 +1,20 @@
 const container = document.getElementById("destinations");
+const thingsContainer = document.getElementById("things-to-do");
+const tabBar = document.querySelector(".tab-bar");
+const tabButtons = tabBar.querySelectorAll(".tab-btn");
+const tabPlanning = document.getElementById("tab-planning");
+const tabThingsToDo = document.getElementById("tab-things-to-do");
+
+let thingsData = null;
+let pendingScrollLocationId = null;
+
+function escapeHtml(value) {
+  return String(value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
 
 function buildMapEmbed(destination) {
   let query;
@@ -146,6 +162,14 @@ function initGalleries(root) {
   });
 }
 
+function buildTipsLink(destination) {
+  return `
+    <a class="tips-link" href="#things-to-do/${destination.id}">
+      Bekijk tips voor ${escapeHtml(destination.name)}
+    </a>
+  `;
+}
+
 function renderCard(destination) {
   const card = document.createElement("article");
   card.className = "card";
@@ -164,6 +188,7 @@ function renderCard(destination) {
     ? `<p class="travel">${destination.travel}</p>`
     : "";
   const map = buildMapEmbed(destination);
+  const tipsLink = buildTipsLink(destination);
 
   card.innerHTML = `
     <h2>${destination.name}</h2>
@@ -175,33 +200,300 @@ function renderCard(destination) {
     ${travel}
     <p>${destination.description}</p>
     ${map}
+    ${tipsLink}
   `;
   return card;
+}
+
+function getLocationTips(locationId) {
+  if (!thingsData?.locations) {
+    return null;
+  }
+
+  return thingsData.locations.find((location) => location.id === locationId) || null;
+}
+
+function hasLocationTips(locationData) {
+  if (!locationData) {
+    return false;
+  }
+
+  const tips = locationData.tips || {};
+
+  for (const category of thingsData.categories || []) {
+    if (tips[category.id]?.length) {
+      return true;
+    }
+  }
+
+  return Boolean(locationData.dayPlans?.length);
+}
+
+function renderTipItem(tip) {
+  const title = tip.title ? `<h4 class="tip-title">${escapeHtml(tip.title)}</h4>` : "";
+  const text = tip.text ? `<p class="tip-text">${escapeHtml(tip.text)}</p>` : "";
+  const note = tip.note
+    ? `<p class="tip-note">${escapeHtml(tip.note)}</p>`
+    : "";
+  const familyFriendly = tip.familyFriendly
+    ? `<p class="tip-badge">Geschikt voor gezinnen</p>`
+    : "";
+  const url = tip.url
+    ? `<p><a class="tip-link" href="${escapeHtml(tip.url)}" target="_blank" rel="noopener noreferrer">Meer info</a></p>`
+    : "";
+  const mapUrl = tip.mapUrl
+    ? `<p><a class="tip-link" href="${escapeHtml(tip.mapUrl)}" target="_blank" rel="noopener noreferrer">Open in Google Maps</a></p>`
+    : "";
+
+  return `
+    <li class="tip-item">
+      ${title}
+      ${text}
+      ${note}
+      ${familyFriendly}
+      ${url}
+      ${mapUrl}
+    </li>
+  `;
+}
+
+function renderDayPlan(dayPlan) {
+  const steps = (dayPlan.steps || [])
+    .map(
+      (step) => `
+        <li class="day-step">
+          ${step.time ? `<p class="day-step-time">${escapeHtml(step.time)}</p>` : ""}
+          ${step.title ? `<h5 class="day-step-title">${escapeHtml(step.title)}</h5>` : ""}
+          ${step.text ? `<p class="day-step-text">${escapeHtml(step.text)}</p>` : ""}
+        </li>
+      `
+    )
+    .join("");
+
+  return `
+    <article class="day-plan">
+      ${dayPlan.title ? `<h4 class="day-plan-title">${escapeHtml(dayPlan.title)}</h4>` : ""}
+      <ol class="day-steps">${steps}</ol>
+    </article>
+  `;
+}
+
+function renderLocationTipsSection(destination) {
+  const locationData = getLocationTips(destination.id);
+  const sectionId = `tips-${destination.id}`;
+
+  if (!hasLocationTips(locationData)) {
+    return `
+      <section class="tips-section" id="${sectionId}">
+        <h2 class="tips-section-title">${escapeHtml(destination.name)}</h2>
+        <p class="tips-empty">Voor deze locatie worden de tips nog toegevoegd.</p>
+      </section>
+    `;
+  }
+
+  const tips = locationData.tips || {};
+  const categoriesHtml = (thingsData.categories || [])
+    .map((category) => {
+      const items = tips[category.id] || [];
+      if (!items.length) {
+        return "";
+      }
+
+      const itemsHtml = items.map((tip) => renderTipItem(tip)).join("");
+
+      return `
+        <section class="tips-category">
+          <h3 class="tips-category-title">${escapeHtml(category.title)}</h3>
+          <ul class="tips-list">${itemsHtml}</ul>
+        </section>
+      `;
+    })
+    .filter(Boolean)
+    .join("");
+
+  const dayPlansHtml = (locationData.dayPlans || []).length
+    ? `
+        <section class="tips-category">
+          <h3 class="tips-category-title">Mogelijke dagindelingen</h3>
+          <div class="day-plans">
+            ${locationData.dayPlans.map((dayPlan) => renderDayPlan(dayPlan)).join("")}
+          </div>
+        </section>
+      `
+    : "";
+
+  return `
+    <section class="tips-section" id="${sectionId}">
+      <h2 class="tips-section-title">${escapeHtml(destination.name)}</h2>
+      ${categoriesHtml}
+      ${dayPlansHtml}
+    </section>
+  `;
+}
+
+function renderThingsToDo(destinations) {
+  return destinations.map((destination) => renderLocationTipsSection(destination)).join("");
+}
+
+function parseHash() {
+  const hash = window.location.hash.replace(/^#/, "");
+
+  if (!hash || hash === "planning") {
+    return { tab: "planning", locationId: null };
+  }
+
+  if (hash === "things-to-do") {
+    return { tab: "things-to-do", locationId: null };
+  }
+
+  if (hash.startsWith("things-to-do/")) {
+    return {
+      tab: "things-to-do",
+      locationId: decodeURIComponent(hash.slice("things-to-do/".length)),
+    };
+  }
+
+  return { tab: "planning", locationId: null };
+}
+
+function buildHash(tab, locationId) {
+  if (tab === "planning") {
+    return "planning";
+  }
+
+  if (locationId) {
+    return `things-to-do/${locationId}`;
+  }
+
+  return "things-to-do";
+}
+
+function setActiveTab(tab, { focusTab = false } = {}) {
+  const isPlanning = tab === "planning";
+
+  tabPlanning.hidden = !isPlanning;
+  tabThingsToDo.hidden = isPlanning;
+
+  tabButtons.forEach((button) => {
+    const isActive = button.dataset.tab === tab;
+    button.classList.toggle("is-active", isActive);
+    button.setAttribute("aria-selected", String(isActive));
+    button.tabIndex = isActive ? 0 : -1;
+  });
+
+  if (focusTab) {
+    const activeButton = tabBar.querySelector(`.tab-btn[data-tab="${tab}"]`);
+    activeButton?.focus();
+  }
+}
+
+function scrollToLocation(locationId) {
+  if (!locationId) {
+    return;
+  }
+
+  const section = document.getElementById(`tips-${locationId}`);
+  if (!section) {
+    return;
+  }
+
+  section.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function applyRouteFromHash() {
+  const route = parseHash();
+  setActiveTab(route.tab);
+
+  if (route.locationId) {
+    pendingScrollLocationId = route.locationId;
+    requestAnimationFrame(() => {
+      if (pendingScrollLocationId) {
+        scrollToLocation(pendingScrollLocationId);
+        pendingScrollLocationId = null;
+      }
+    });
+  } else {
+    pendingScrollLocationId = null;
+  }
+}
+
+function initTabNavigation() {
+  tabButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      const nextHash = buildHash(button.dataset.tab, null);
+      if (window.location.hash.replace(/^#/, "") !== nextHash) {
+        window.location.hash = nextHash;
+      } else {
+        applyRouteFromHash();
+      }
+    });
+  });
+
+  tabBar.addEventListener("keydown", (event) => {
+    const tabs = [...tabButtons];
+    const currentIndex = tabs.indexOf(document.activeElement);
+
+    if (event.key === "ArrowRight" || event.key === "ArrowLeft") {
+      event.preventDefault();
+
+      const direction = event.key === "ArrowRight" ? 1 : -1;
+      const startIndex = currentIndex >= 0 ? currentIndex : tabs.findIndex((tab) => tab.classList.contains("is-active"));
+      const nextIndex = (startIndex + direction + tabs.length) % tabs.length;
+      tabs[nextIndex].focus();
+      return;
+    }
+
+    if (event.key === "Enter" || event.key === " ") {
+      if (event.target.matches(".tab-btn")) {
+        event.preventDefault();
+        event.target.click();
+      }
+    }
+  });
+
+  window.addEventListener("hashchange", applyRouteFromHash);
 }
 
 function showError(message) {
   container.innerHTML = `<p class="error">${message}</p>`;
 }
 
-async function loadDestinations() {
-  try {
-    const response = await fetch("data/destinations.json");
+function showThingsError(message) {
+  thingsContainer.innerHTML = `<p class="error">${message}</p>`;
+}
 
-    if (!response.ok) {
+async function loadApp() {
+  try {
+    const [destinationsResponse, thingsResponse] = await Promise.all([
+      fetch("data/destinations.json"),
+      fetch("data/things-to-do.json"),
+    ]);
+
+    if (!destinationsResponse.ok) {
       throw new Error("Kon bestemmingen niet laden.");
     }
 
-    const destinations = await response.json();
-    container.innerHTML = "";
+    if (!thingsResponse.ok) {
+      throw new Error("Kon tips niet laden.");
+    }
 
+    const destinations = await destinationsResponse.json();
+    thingsData = await thingsResponse.json();
+
+    container.innerHTML = "";
     destinations.forEach((destination) => {
       container.appendChild(renderCard(destination));
     });
-
     initGalleries(container);
+
+    thingsContainer.innerHTML = renderThingsToDo(destinations);
+
+    initTabNavigation();
+    applyRouteFromHash();
   } catch (error) {
     showError(error.message);
+    showThingsError(error.message);
   }
 }
 
-loadDestinations();
+loadApp();
