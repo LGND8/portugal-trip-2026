@@ -1,0 +1,20 @@
+[
+  {
+    "id": "lissabon",
+    "name": "Lissabon",
+    "description": "Start van onze reis — trams, miradouros en pastel de nata.",
+    "dates": "12–15 juli 2026"
+  },
+  {
+    "id": "odemira",
+    "name": "Odemira",
+    "description": "Rust in het Alentejo — stranden, natuur en lokale markten.",
+    "dates": "16–19 juli 2026"
+  },
+  {
+    "id": "carvoeiro",
+    "name": "Carvoeiro",
+    "description": "Afsluiting aan de Algarve — kliffen, baaitjes en zee.",
+    "dates": "19–23 juli 2026"
+  }
+]
