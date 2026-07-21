@@ -16,7 +16,7 @@
       { "src": "images/odemira/04.jpg", "alt": "Quinta do Chocalhinho — foto 4" },
       { "src": "images/odemira/05.jpg", "alt": "Quinta do Chocalhinho — foto 5" }
     ],
-    "travel": "Vlucht Transavia vanuit Eindhoven, aankomst 20 juli 18:05 op Lissabon Airport. Huurauto Goldcar (Kia Stonic, CI02HQ) opgehaald om 19:30. Daarna naar Odemira."
+    "travel": "Vlucht Transavia vanuit Eindhoven, aankomst 20 juli 18:05 op Lissabon Airport. Huurauto opgehaald om 19:30. Daarna naar Odemira."
   },
   {
     "id": "carvoeiro",
@@ -71,6 +71,6 @@
       { "src": "images/lissabon/04.jpg", "alt": "Terracotta Duplex — foto 4" },
       { "src": "images/lissabon/05.jpg", "alt": "Terracotta Duplex — foto 5" }
     ],
-    "travel": "Huurauto Goldcar (Kia Stonic, CI02HQ) ingeleverd op Lissabon Airport, 3 augustus 17:30."
+    "travel": "Huurauto ingeleverd op Lissabon Airport, 3 augustus 17:30."
   }
 ]
