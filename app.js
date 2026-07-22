@@ -2,8 +2,14 @@ const container = document.getElementById("destinations");
 const thingsContainer = document.getElementById("things-to-do");
 const tabBar = document.querySelector(".tab-bar");
 const tabButtons = tabBar.querySelectorAll(".tab-btn");
-const tabPlanning = document.getElementById("tab-planning");
-const tabThingsToDo = document.getElementById("tab-things-to-do");
+const tabPanels = {
+  reis: document.getElementById("tab-reis"),
+  route: document.getElementById("tab-route"),
+  todo: document.getElementById("tab-todo"),
+  planning: document.getElementById("tab-planning"),
+};
+
+const VALID_TABS = ["reis", "route", "todo", "planning"];
 
 let thingsData = null;
 let pendingScrollLocationId = null;
@@ -164,7 +170,7 @@ function initGalleries(root) {
 
 function buildTipsLink(destination) {
   return `
-    <a class="tips-link" href="#things-to-do/${destination.id}">
+    <a class="tips-link" href="#todo/${destination.id}">
       Bekijk tips voor ${escapeHtml(destination.name)}
     </a>
   `;
@@ -335,54 +341,86 @@ function renderThingsToDo(destinations) {
   return destinations.map((destination) => renderLocationTipsSection(destination)).join("");
 }
 
+function normalizeTab(tab) {
+  if (tab === "things-to-do") {
+    return "todo";
+  }
+
+  if (VALID_TABS.includes(tab)) {
+    return tab;
+  }
+
+  return "reis";
+}
+
 function parseHash() {
   const hash = window.location.hash.replace(/^#/, "");
 
-  if (!hash || hash === "planning") {
+  if (!hash || hash === "reis") {
+    return { tab: "reis", locationId: null };
+  }
+
+  if (hash === "route") {
+    return { tab: "route", locationId: null };
+  }
+
+  if (hash === "planning") {
     return { tab: "planning", locationId: null };
   }
 
-  if (hash === "things-to-do") {
-    return { tab: "things-to-do", locationId: null };
+  if (hash === "todo" || hash === "things-to-do") {
+    return { tab: "todo", locationId: null };
+  }
+
+  if (hash.startsWith("todo/")) {
+    return {
+      tab: "todo",
+      locationId: decodeURIComponent(hash.slice("todo/".length)),
+    };
   }
 
   if (hash.startsWith("things-to-do/")) {
     return {
-      tab: "things-to-do",
+      tab: "todo",
       locationId: decodeURIComponent(hash.slice("things-to-do/".length)),
     };
   }
 
-  return { tab: "planning", locationId: null };
+  return { tab: "reis", locationId: null };
 }
 
 function buildHash(tab, locationId) {
-  if (tab === "planning") {
-    return "planning";
+  const normalizedTab = normalizeTab(tab);
+
+  if (normalizedTab === "todo" && locationId) {
+    return `todo/${locationId}`;
   }
 
-  if (locationId) {
-    return `things-to-do/${locationId}`;
-  }
-
-  return "things-to-do";
+  return normalizedTab;
 }
 
 function setActiveTab(tab, { focusTab = false } = {}) {
-  const isPlanning = tab === "planning";
+  const normalizedTab = normalizeTab(tab);
 
-  tabPlanning.hidden = !isPlanning;
-  tabThingsToDo.hidden = isPlanning;
+  Object.entries(tabPanels).forEach(([name, panel]) => {
+    if (!panel) {
+      return;
+    }
+
+    panel.hidden = name !== normalizedTab;
+  });
 
   tabButtons.forEach((button) => {
-    const isActive = button.dataset.tab === tab;
+    const isActive = button.dataset.tab === normalizedTab;
     button.classList.toggle("is-active", isActive);
     button.setAttribute("aria-selected", String(isActive));
     button.tabIndex = isActive ? 0 : -1;
   });
 
   if (focusTab) {
-    const activeButton = tabBar.querySelector(`.tab-btn[data-tab="${tab}"]`);
+    const activeButton = tabBar.querySelector(
+      `.tab-btn[data-tab="${normalizedTab}"]`
+    );
     activeButton?.focus();
   }
 }
@@ -464,6 +502,10 @@ function showThingsError(message) {
 
 async function loadApp() {
   try {
+    if (!window.location.hash) {
+      history.replaceState(null, "", "#reis");
+    }
+
     const [destinationsResponse, thingsResponse] = await Promise.all([
       fetch("data/destinations.json"),
       fetch("data/things-to-do.json"),
