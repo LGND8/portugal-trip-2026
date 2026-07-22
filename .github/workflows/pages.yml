@@ -1,0 +1,58 @@
+name: Deploy GitHub Pages
+
+"on":
+  push:
+    branches:
+      - main
+      - ios-app-ui
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          path: main-src
+
+      - name: Checkout ios-app-ui
+        uses: actions/checkout@v4
+        with:
+          ref: ios-app-ui
+          path: preview-src
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Assemble site
+        run: |
+          mkdir -p site/preview
+          rsync -a --exclude='.git' main-src/ site/
+          rsync -a --exclude='.git' preview-src/ site/preview/
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5
