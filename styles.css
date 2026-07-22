@@ -61,7 +61,6 @@ body {
   flex-direction: column;
   min-height: 100vh;
   min-height: 100dvh;
-  padding-top: var(--safe-top);
   padding-right: var(--safe-right);
   padding-left: var(--safe-left);
 }
@@ -71,10 +70,18 @@ body {
   width: 100%;
   max-width: 800px;
   margin: 0 auto;
-  padding: var(--space-5) var(--space-4);
+  padding: 0;
   padding-bottom: calc(
     var(--space-5) + var(--tab-bar-height) + var(--safe-bottom) + var(--space-2)
   );
+}
+
+#tab-route,
+#tab-todo,
+#tab-planning {
+  padding-top: calc(var(--safe-top) + var(--space-5));
+  padding-right: var(--space-4);
+  padding-left: var(--space-4);
 }
 
 .tab-panel[hidden] {
@@ -181,6 +188,503 @@ body {
 
   .tab-btn:active {
     transform: none;
+  }
+}
+
+/* ——— Reis (Home) ——— */
+
+.reis {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.reis > .loading,
+.reis > .error {
+  padding: calc(var(--safe-top) + var(--space-6)) var(--space-4) var(--space-4);
+}
+
+.reis-hero {
+  position: relative;
+  min-height: min(78vh, 38rem);
+  color: var(--color-on-primary);
+  overflow: hidden;
+  background: #1a2a38;
+}
+
+.reis-hero-image {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.reis-hero-scrim {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(
+      to top,
+      rgba(8, 16, 24, 0.82) 0%,
+      rgba(8, 16, 24, 0.35) 42%,
+      rgba(8, 16, 24, 0.45) 100%
+    );
+}
+
+.reis-hero-content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  min-height: inherit;
+  padding: calc(var(--safe-top) + var(--space-6)) var(--space-5) var(--space-6);
+}
+
+.reis-kicker {
+  margin: 0;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  opacity: 0.85;
+}
+
+.reis-title {
+  margin: 0;
+  max-width: 14ch;
+  font-size: clamp(2rem, 7vw, 2.75rem);
+  font-weight: 700;
+  line-height: 1.08;
+  letter-spacing: -0.03em;
+}
+
+.reis-subtitle {
+  margin: 0;
+  font-size: 1.0625rem;
+  font-weight: 400;
+  opacity: 0.9;
+}
+
+.reis-status {
+  margin: var(--space-3) 0 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+
+.reis-progress {
+  margin-top: var(--space-4);
+  max-width: 14rem;
+}
+
+.reis-progress-track {
+  height: 0.25rem;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.28);
+}
+
+.reis-progress-value {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: #ffffff;
+  transform-origin: left center;
+  transition: width 480ms ease-out;
+}
+
+.reis-section {
+  padding: var(--space-6) var(--space-4) 0;
+}
+
+.reis-section:last-child {
+  padding-bottom: var(--space-4);
+}
+
+.reis-section-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+.reis-section-title {
+  margin: 0;
+  font-size: 1.375rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--color-text);
+}
+
+.reis-section-link {
+  color: var(--color-primary);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.reis-section-link:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.reis-journey {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.reis-journey-item {
+  position: relative;
+  padding-left: 1.75rem;
+  padding-bottom: var(--space-5);
+}
+
+.reis-journey-item:last-child {
+  padding-bottom: 0;
+}
+
+.reis-journey-item::before {
+  content: "";
+  position: absolute;
+  top: 0.45rem;
+  left: 0.2rem;
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 50%;
+  background: var(--color-primary);
+  box-shadow: 0 0 0 4px var(--color-primary-soft);
+}
+
+.reis-journey-item:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  top: 1.15rem;
+  bottom: 0;
+  left: 0.42rem;
+  width: 1px;
+  background: var(--color-border);
+}
+
+.reis-journey-item.is-current::before {
+  background: var(--color-primary);
+  box-shadow: 0 0 0 5px rgba(11, 61, 102, 0.18);
+}
+
+.reis-journey-item.is-current .reis-journey-name {
+  color: var(--color-primary);
+}
+
+.reis-journey-item.is-past::before {
+  background: var(--color-text-muted);
+  box-shadow: none;
+}
+
+.reis-journey-item.is-past .reis-journey-name {
+  color: var(--color-text-muted);
+}
+
+.reis-journey-name {
+  margin: 0;
+  font-size: 1.0625rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.reis-journey-meta {
+  margin: 0.15rem 0 0;
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+}
+
+.reis-photos {
+  display: flex;
+  gap: var(--space-3);
+  padding-bottom: var(--space-2);
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.reis-photos::-webkit-scrollbar {
+  display: none;
+}
+
+.reis-photo-wrap {
+  flex: 0 0 min(78vw, 22rem);
+  scroll-snap-align: start;
+}
+
+.reis-photo {
+  display: block;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 1.25rem;
+  overflow: hidden;
+  background: var(--color-muted-surface);
+  cursor: pointer;
+  aspect-ratio: 4 / 5;
+  transition: transform var(--motion-fast), opacity var(--motion-fast);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.reis-photo:active {
+  transform: scale(0.985);
+  opacity: 0.96;
+}
+
+.reis-photo:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 3px;
+}
+
+.reis-photo img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.reis-photo-label {
+  margin: var(--space-2) 0 0;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-text-muted);
+}
+
+.reis-highlights {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.reis-highlight {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-3);
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform var(--motion-fast), opacity var(--motion-fast);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.reis-highlight:active {
+  transform: scale(0.99);
+  opacity: 0.96;
+}
+
+.reis-highlight:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 4px;
+  border-radius: var(--radius-card);
+}
+
+.reis-highlight-media {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  border-radius: 1.25rem;
+  background: var(--color-muted-surface);
+}
+
+.reis-highlight-media img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.reis-highlight-title {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.reis-highlight-text {
+  margin: 0.25rem 0 0;
+  color: var(--color-text-body);
+  font-size: 0.9375rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.reis-highlight-meta {
+  margin: 0.35rem 0 0;
+  color: var(--color-text-muted);
+  font-size: 0.8125rem;
+  font-weight: 500;
+}
+
+.reis-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin-bottom: var(--space-4);
+  padding: var(--space-4);
+  border-radius: 1.25rem;
+  background: var(--color-surface);
+  box-shadow: var(--shadow-soft);
+}
+
+.reis-preview-item {
+  padding: var(--space-3) 0;
+}
+
+.reis-preview-item + .reis-preview-item {
+  border-top: 1px solid var(--color-border-subtle);
+}
+
+.reis-preview-label {
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-primary);
+}
+
+.reis-preview-text {
+  margin: 0.2rem 0 0;
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--color-text);
+}
+
+.reis-preview-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.75rem;
+  margin-top: var(--space-4);
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-row);
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: transform var(--motion-fast), opacity var(--motion-fast);
+}
+
+.reis-preview-cta:active {
+  transform: scale(0.98);
+  opacity: 0.94;
+}
+
+.reis-preview-cta:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 3px;
+}
+
+.reis-photo-viewer {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--safe-top) var(--space-4) calc(var(--safe-bottom) + var(--space-4));
+  background: rgba(0, 0, 0, 0.92);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 220ms ease-out, visibility 220ms ease-out;
+}
+
+.reis-photo-viewer.is-open {
+  opacity: 1;
+  visibility: visible;
+}
+
+.reis-photo-viewer img {
+  display: block;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  border-radius: 0.5rem;
+}
+
+.reis-photo-viewer-close {
+  position: absolute;
+  top: calc(var(--safe-top) + var(--space-3));
+  right: var(--space-3);
+  width: 2.75rem;
+  height: 2.75rem;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.14);
+  color: #fff;
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.reis-photo-viewer-close:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
+
+.reis-animate > .reis-hero,
+.reis-animate > .reis-section {
+  animation: reis-fade-up 280ms ease-out;
+}
+
+.reis-animate > .reis-section:nth-of-type(1) {
+  animation-delay: 40ms;
+}
+
+.reis-animate > .reis-section:nth-of-type(2) {
+  animation-delay: 80ms;
+}
+
+.reis-animate > .reis-section:nth-of-type(3) {
+  animation-delay: 120ms;
+}
+
+.reis-animate > .reis-section:nth-of-type(4) {
+  animation-delay: 160ms;
+}
+
+@keyframes reis-fade-up {
+  from {
+    transform: translateY(8px);
+  }
+
+  to {
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reis-progress-value {
+    transition: none;
+  }
+
+  .reis-photo,
+  .reis-highlight,
+  .reis-preview-cta,
+  .reis-photo-viewer {
+    transition: none;
+  }
+
+  .reis-animate > .reis-hero,
+  .reis-animate > .reis-section {
+    animation: none;
   }
 }
 
