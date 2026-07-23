@@ -888,128 +888,389 @@ body {
   outline-offset: 2px;
 }
 
+/* ——— To Do (layered) ——— */
+
 .things-to-do {
-  display: grid;
-  gap: 1.5rem;
+  min-height: 50vh;
 }
 
-.tips-section {
-  scroll-margin-top: 1rem;
-  background: var(--color-surface);
-  border-radius: var(--radius-card);
-  padding: 1.25rem;
-  box-shadow: var(--shadow-soft);
-  border-top: 4px solid var(--color-primary);
+.todo-screen-header,
+.todo-location-header {
+  margin-bottom: var(--space-5);
 }
 
-.tips-section-title {
-  margin: 0 0 1rem;
-  font-size: 1.25rem;
-  color: var(--color-primary);
-}
-
-.tips-empty {
+.todo-screen-title {
   margin: 0;
-  color: var(--color-text-muted);
-  font-style: italic;
-}
-
-.tips-category + .tips-category,
-.tips-category + .day-plans,
-.day-plans + .tips-category {
-  margin-top: 1.25rem;
-}
-
-.tips-category-title {
-  margin: 0 0 0.75rem;
-  font-size: 1rem;
+  font-size: 1.75rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
   color: var(--color-text);
 }
 
-.tips-list {
-  margin: 0;
+.todo-screen-subtitle {
+  margin: 0.35rem 0 0;
+  color: var(--color-text-muted);
+  font-size: 0.975rem;
+}
+
+.todo-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-height: 2.75rem;
+  margin: 0 0 var(--space-3);
   padding: 0;
-  list-style: none;
+  border: 0;
+  background: transparent;
+  color: var(--color-primary);
+  font: inherit;
+  font-size: 1.0625rem;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: opacity var(--motion-fast), transform var(--motion-fast);
+  -webkit-tap-highlight-color: transparent;
 }
 
-.tip-item + .tip-item {
-  margin-top: 1rem;
-  padding-top: 1rem;
-  border-top: 1px solid var(--color-border-subtle);
+.todo-back:active {
+  transform: scale(0.98);
+  opacity: 0.85;
 }
 
-.tip-title {
-  margin: 0 0 0.25rem;
+.todo-back:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 3px;
+  border-radius: 0.5rem;
+}
+
+.todo-destination-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.todo-destination-card {
+  display: grid;
+  grid-template-rows: auto auto;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  border-radius: 1.35rem;
+  background: var(--color-surface);
+  box-shadow: var(--shadow-soft);
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: transform var(--motion-fast), opacity var(--motion-fast);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.todo-destination-card:active {
+  transform: scale(0.985);
+  opacity: 0.97;
+}
+
+.todo-destination-card:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 3px;
+}
+
+.todo-destination-media {
+  display: block;
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  background: var(--color-muted-surface);
+}
+
+.todo-destination-media img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.todo-destination-body {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-4);
+}
+
+.todo-destination-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+.todo-destination-name {
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--color-text);
+}
+
+.todo-destination-count {
   font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--color-primary);
 }
 
-.tip-text,
-.tip-note,
-.tip-badge {
-  margin: 0.25rem 0 0;
-  font-size: 0.9375rem;
-  color: var(--color-text-body);
-}
-
-.tip-note {
+.todo-destination-teaser {
+  margin-top: 0.15rem;
   color: var(--color-text-muted);
   font-size: 0.875rem;
+  line-height: 1.35;
 }
 
-.tip-badge {
+.todo-destination-chevron,
+.todo-accordion-chevron {
+  flex: 0 0 auto;
+  width: 0.55rem;
+  height: 0.55rem;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  color: var(--color-text-muted);
+  transform: rotate(-45deg);
+}
+
+.todo-destination-chevron {
+  margin-right: 0.15rem;
+}
+
+.todo-activity-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.todo-category-label {
+  margin: var(--space-4) 0 0;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.todo-category-label:first-child {
+  margin-top: 0;
+}
+
+.todo-empty {
+  margin: 0;
+  padding: var(--space-5);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+  box-shadow: var(--shadow-soft);
+}
+
+.todo-accordion {
+  overflow: hidden;
+  border-radius: 1.15rem;
+  background: var(--color-surface);
+  box-shadow: var(--shadow-soft);
+}
+
+.todo-accordion-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  width: 100%;
+  min-height: 4.25rem;
+  padding: var(--space-4);
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color var(--motion-fast), transform var(--motion-fast);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.todo-accordion-trigger:active {
+  transform: scale(0.995);
+}
+
+.todo-accordion-trigger:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: -2px;
+}
+
+.todo-accordion-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+.todo-accordion-title {
+  font-size: 1.0625rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.todo-accordion-meta {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--color-text-muted);
+}
+
+.todo-accordion-chevron {
+  transition: transform var(--motion-fast);
+}
+
+.todo-accordion.is-open .todo-accordion-chevron {
+  transform: rotate(45deg);
+}
+
+.todo-accordion-panel {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 280ms ease-out;
+}
+
+.todo-accordion.is-open .todo-accordion-panel {
+  grid-template-rows: 1fr;
+}
+
+.todo-accordion-panel-inner {
+  overflow: hidden;
+  padding: 0 var(--space-4);
+}
+
+.todo-accordion.is-open .todo-accordion-panel-inner {
+  padding-bottom: var(--space-4);
+}
+
+.todo-detail-text,
+.todo-detail-note,
+.todo-detail-meta {
+  margin: 0 0 var(--space-3);
+  color: var(--color-text-body);
+  font-size: 0.975rem;
+  line-height: 1.5;
+}
+
+.todo-detail-note span,
+.todo-detail-meta span {
+  display: block;
+  margin-bottom: 0.2rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-primary);
+}
+
+.todo-detail-badge {
+  margin: 0 0 var(--space-3);
   color: var(--color-success);
+  font-size: 0.875rem;
   font-weight: 600;
 }
 
-.tip-link {
-  color: var(--color-primary);
+.todo-detail-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
 }
 
-.day-plans {
-  display: grid;
-  gap: 1rem;
-}
-
-.day-plan {
-  padding: 1rem;
-  border-radius: 8px;
+.todo-detail-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.5rem;
+  padding: 0.55rem 0.9rem;
+  border-radius: 999px;
   background: var(--color-primary-soft);
-}
-
-.day-plan-title {
-  margin: 0 0 0.75rem;
-  font-size: 0.9375rem;
   color: var(--color-primary);
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-decoration: none;
 }
 
-.day-steps {
+.todo-detail-link:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.todo-detail-photos {
+  display: grid;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
+}
+
+.todo-detail-photos img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  object-fit: cover;
+  border-radius: var(--radius-row);
+  background: var(--color-muted-surface);
+}
+
+.todo-day-steps {
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
-.day-step + .day-step {
-  margin-top: 0.875rem;
-  padding-top: 0.875rem;
-  border-top: 1px solid var(--color-border);
+.todo-day-step + .todo-day-step {
+  margin-top: var(--space-3);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--color-border-subtle);
 }
 
-.day-step-time {
-  margin: 0 0 0.25rem;
-  font-size: 0.8125rem;
+.todo-day-step-time {
+  margin: 0 0 0.2rem;
+  font-size: 0.75rem;
   font-weight: 700;
-  color: var(--color-primary);
+  letter-spacing: 0.04em;
   text-transform: uppercase;
-  letter-spacing: 0.03em;
+  color: var(--color-primary);
 }
 
-.day-step-title {
-  margin: 0 0 0.25rem;
-  font-size: 0.9375rem;
+.todo-day-step-title {
+  margin: 0 0 0.15rem;
+  font-size: 0.975rem;
+  font-weight: 600;
+  color: var(--color-text);
 }
 
-.day-step-text {
+.todo-day-step-text {
   margin: 0;
-  font-size: 0.9375rem;
   color: var(--color-text-body);
+  font-size: 0.9375rem;
+}
+
+.todo-view-animate .todo-screen {
+  animation: todo-fade-up 260ms ease-out;
+}
+
+@keyframes todo-fade-up {
+  from {
+    transform: translateY(8px);
+  }
+
+  to {
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .todo-destination-card,
+  .todo-back,
+  .todo-accordion-trigger,
+  .todo-accordion-chevron,
+  .todo-accordion-panel {
+    transition: none;
+  }
+
+  .todo-view-animate .todo-screen {
+    animation: none;
+  }
 }

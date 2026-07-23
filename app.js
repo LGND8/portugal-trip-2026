@@ -26,9 +26,20 @@ const DUTCH_MONTHS = {
   december: 11,
 };
 
+const CATEGORY_TEASER_LABELS = {
+  highlights: "Hoogtepunten",
+  beaches: "Stranden",
+  activities: "Activiteiten",
+  food: "Restaurants",
+  shops: "Winkels",
+  kids: "Met kinderen",
+  practical: "Praktisch",
+};
+
 let thingsData = null;
-let pendingScrollLocationId = null;
+let appDestinations = [];
 let photoViewer = null;
+let todoInteractionsBound = false;
 
 function escapeHtml(value) {
   return String(value)
@@ -235,126 +246,383 @@ function getLocationTips(locationId) {
   return thingsData.locations.find((location) => location.id === locationId) || null;
 }
 
-function hasLocationTips(locationData) {
-  if (!locationData) {
-    return false;
+function countLocationActivities(locationData) {
+  if (!locationData?.tips) {
+    return 0;
   }
 
-  const tips = locationData.tips || {};
+  return Object.values(locationData.tips).reduce(
+    (sum, items) => sum + (items?.length || 0),
+    0
+  );
+}
 
-  for (const category of thingsData.categories || []) {
-    if (tips[category.id]?.length) {
-      return true;
+function getCategoryTeasers(locationData, limit = 3) {
+  const tips = locationData?.tips || {};
+  const preferredOrder = [
+    "beaches",
+    "food",
+    "activities",
+    "highlights",
+    "kids",
+    "shops",
+    "practical",
+  ];
+  const labels = [];
+
+  for (const categoryId of preferredOrder) {
+    if (!tips[categoryId]?.length) {
+      continue;
+    }
+
+    labels.push(CATEGORY_TEASER_LABELS[categoryId] || categoryId);
+
+    if (labels.length >= limit) {
+      break;
     }
   }
 
-  return Boolean(locationData.dayPlans?.length);
+  return labels;
 }
 
-function renderTipItem(tip) {
-  const title = tip.title ? `<h4 class="tip-title">${escapeHtml(tip.title)}</h4>` : "";
-  const text = tip.text ? `<p class="tip-text">${escapeHtml(tip.text)}</p>` : "";
-  const note = tip.note
-    ? `<p class="tip-note">${escapeHtml(tip.note)}</p>`
-    : "";
-  const familyFriendly = tip.familyFriendly
-    ? `<p class="tip-badge">Geschikt voor gezinnen</p>`
-    : "";
-  const url = tip.url
-    ? `<p><a class="tip-link" href="${escapeHtml(tip.url)}" target="_blank" rel="noopener noreferrer">Meer info</a></p>`
-    : "";
-  const mapUrl = tip.mapUrl
-    ? `<p><a class="tip-link" href="${escapeHtml(tip.mapUrl)}" target="_blank" rel="noopener noreferrer">Open in Google Maps</a></p>`
+function getLocationActivities(destination) {
+  const locationData = getLocationTips(destination.id);
+  const activities = [];
+
+  if (!locationData) {
+    return activities;
+  }
+
+  for (const category of thingsData?.categories || []) {
+    const items = locationData.tips?.[category.id] || [];
+
+    items.forEach((tip, index) => {
+      activities.push({
+        id: `${destination.id}:${category.id}:${index}`,
+        kind: "tip",
+        categoryId: category.id,
+        categoryTitle: CATEGORY_TEASER_LABELS[category.id] || category.title,
+        tip,
+      });
+    });
+  }
+
+  (locationData.dayPlans || []).forEach((dayPlan, index) => {
+    activities.push({
+      id: `${destination.id}:dayplan:${index}`,
+      kind: "dayplan",
+      categoryId: "dayplan",
+      categoryTitle: "Dagindelingen",
+      dayPlan,
+    });
+  });
+
+  return activities;
+}
+
+function renderTodoTipDetails(tip) {
+  const photos = tip.photos?.length
+    ? tip.photos
+    : tip.photo
+      ? [tip.photo]
+      : [];
+  const hours = tip.hours || tip.openingHours || tip.openingstijden;
+  const photoHtml = photos.length
+    ? `
+      <div class="todo-detail-photos">
+        ${photos
+          .map(
+            (photo) => `
+              <img
+                src="${escapeHtml(typeof photo === "string" ? photo : photo.src)}"
+                alt="${escapeHtml(
+                  typeof photo === "string" ? tip.title || "" : photo.alt || tip.title || ""
+                )}"
+                loading="lazy"
+              >
+            `
+          )
+          .join("")}
+      </div>
+    `
     : "";
 
   return `
-    <li class="tip-item">
-      ${title}
-      ${text}
-      ${note}
-      ${familyFriendly}
-      ${url}
-      ${mapUrl}
-    </li>
+    ${photoHtml}
+    ${tip.text ? `<p class="todo-detail-text">${escapeHtml(tip.text)}</p>` : ""}
+    ${
+      tip.note
+        ? `<p class="todo-detail-note"><span>Tip</span>${escapeHtml(tip.note)}</p>`
+        : ""
+    }
+    ${
+      hours
+        ? `<p class="todo-detail-meta"><span>Openingstijden</span>${escapeHtml(hours)}</p>`
+        : ""
+    }
+    ${
+      tip.familyFriendly
+        ? `<p class="todo-detail-badge">Geschikt voor gezinnen</p>`
+        : ""
+    }
+    <div class="todo-detail-links">
+      ${
+        tip.url
+          ? `<a class="todo-detail-link" href="${escapeHtml(tip.url)}" target="_blank" rel="noopener noreferrer">Meer info</a>`
+          : ""
+      }
+      ${
+        tip.mapUrl
+          ? `<a class="todo-detail-link" href="${escapeHtml(tip.mapUrl)}" target="_blank" rel="noopener noreferrer">Open in Google Maps</a>`
+          : ""
+      }
+    </div>
   `;
 }
 
-function renderDayPlan(dayPlan) {
+function renderTodoDayPlanDetails(dayPlan) {
   const steps = (dayPlan.steps || [])
     .map(
       (step) => `
-        <li class="day-step">
-          ${step.time ? `<p class="day-step-time">${escapeHtml(step.time)}</p>` : ""}
-          ${step.title ? `<h5 class="day-step-title">${escapeHtml(step.title)}</h5>` : ""}
-          ${step.text ? `<p class="day-step-text">${escapeHtml(step.text)}</p>` : ""}
+        <li class="todo-day-step">
+          ${step.time ? `<p class="todo-day-step-time">${escapeHtml(step.time)}</p>` : ""}
+          ${step.title ? `<p class="todo-day-step-title">${escapeHtml(step.title)}</p>` : ""}
+          ${step.text ? `<p class="todo-day-step-text">${escapeHtml(step.text)}</p>` : ""}
         </li>
       `
     )
     .join("");
 
   return `
-    <article class="day-plan">
-      ${dayPlan.title ? `<h4 class="day-plan-title">${escapeHtml(dayPlan.title)}</h4>` : ""}
-      <ol class="day-steps">${steps}</ol>
+    ${dayPlan.title ? `<p class="todo-detail-text">${escapeHtml(dayPlan.title)}</p>` : ""}
+    <ol class="todo-day-steps">${steps}</ol>
+  `;
+}
+
+function renderTodoAccordion(activity) {
+  const title =
+    activity.kind === "dayplan"
+      ? activity.dayPlan.title || "Dagindeling"
+      : activity.tip.title || "Activiteit";
+  const details =
+    activity.kind === "dayplan"
+      ? renderTodoDayPlanDetails(activity.dayPlan)
+      : renderTodoTipDetails(activity.tip);
+
+  return `
+    <article class="todo-accordion" data-accordion-id="${escapeHtml(activity.id)}">
+      <button
+        type="button"
+        class="todo-accordion-trigger"
+        data-todo-accordion
+        aria-expanded="false"
+      >
+        <span class="todo-accordion-copy">
+          <span class="todo-accordion-title">${escapeHtml(title)}</span>
+        </span>
+        <span class="todo-accordion-chevron" aria-hidden="true"></span>
+      </button>
+      <div class="todo-accordion-panel">
+        <div class="todo-accordion-panel-inner">
+          ${details}
+        </div>
+      </div>
     </article>
   `;
 }
 
-function renderLocationTipsSection(destination) {
-  const locationData = getLocationTips(destination.id);
-  const sectionId = `tips-${destination.id}`;
-
-  if (!hasLocationTips(locationData)) {
-    return `
-      <section class="tips-section" id="${sectionId}">
-        <h2 class="tips-section-title">${escapeHtml(destination.name)}</h2>
-        <p class="tips-empty">Voor deze locatie worden de tips nog toegevoegd.</p>
-      </section>
-    `;
-  }
-
-  const tips = locationData.tips || {};
-  const categoriesHtml = (thingsData.categories || [])
-    .map((category) => {
-      const items = tips[category.id] || [];
-      if (!items.length) {
-        return "";
-      }
-
-      const itemsHtml = items.map((tip) => renderTipItem(tip)).join("");
+function renderTodoDestinations(destinations) {
+  const cards = destinations
+    .map((destination) => {
+      const locationData = getLocationTips(destination.id);
+      const count = countLocationActivities(locationData);
+      const teasers = getCategoryTeasers(locationData);
+      const photo = destination.photos?.[0];
+      const countLabel =
+        count === 0
+          ? "Tips volgen nog"
+          : count === 1
+            ? "1 activiteit"
+            : `${count} activiteiten`;
+      const teaserLabel = teasers.length ? teasers.join(" • ") : destination.description;
 
       return `
-        <section class="tips-category">
-          <h3 class="tips-category-title">${escapeHtml(category.title)}</h3>
-          <ul class="tips-list">${itemsHtml}</ul>
-        </section>
+        <button
+          type="button"
+          class="todo-destination-card"
+          data-todo-destination="${escapeHtml(destination.id)}"
+        >
+          <span class="todo-destination-media">
+            ${
+              photo
+                ? `<img
+                    src="${escapeHtml(photo.src)}"
+                    alt=""
+                    loading="lazy"
+                  >`
+                : ""
+            }
+          </span>
+          <span class="todo-destination-body">
+            <span class="todo-destination-copy">
+              <span class="todo-destination-name">${escapeHtml(destination.name)}</span>
+              <span class="todo-destination-count">${escapeHtml(countLabel)}</span>
+              <span class="todo-destination-teaser">${escapeHtml(teaserLabel)}</span>
+            </span>
+            <span class="todo-destination-chevron" aria-hidden="true"></span>
+          </span>
+        </button>
       `;
     })
-    .filter(Boolean)
     .join("");
 
-  const dayPlansHtml = (locationData.dayPlans || []).length
-    ? `
-        <section class="tips-category">
-          <h3 class="tips-category-title">Mogelijke dagindelingen</h3>
-          <div class="day-plans">
-            ${locationData.dayPlans.map((dayPlan) => renderDayPlan(dayPlan)).join("")}
-          </div>
-        </section>
-      `
-    : "";
-
   return `
-    <section class="tips-section" id="${sectionId}">
-      <h2 class="tips-section-title">${escapeHtml(destination.name)}</h2>
-      ${categoriesHtml}
-      ${dayPlansHtml}
+    <section class="todo-screen todo-screen--destinations" aria-labelledby="todo-destinations-title">
+      <header class="todo-screen-header">
+        <h1 class="todo-screen-title" id="todo-destinations-title">To Do</h1>
+        <p class="todo-screen-subtitle">Kies een bestemming</p>
+      </header>
+      <div class="todo-destination-list">
+        ${cards}
+      </div>
     </section>
   `;
 }
 
-function renderThingsToDo(destinations) {
-  return destinations.map((destination) => renderLocationTipsSection(destination)).join("");
+function renderTodoLocation(destination) {
+  const activities = getLocationActivities(destination);
+  let currentCategory = null;
+  const listHtml = [];
+
+  if (!activities.length) {
+    listHtml.push(`
+      <p class="todo-empty">
+        Voor ${escapeHtml(destination.name)} worden de tips nog toegevoegd.
+      </p>
+    `);
+  } else {
+    activities.forEach((activity) => {
+      if (activity.categoryTitle !== currentCategory) {
+        currentCategory = activity.categoryTitle;
+        listHtml.push(
+          `<h2 class="todo-category-label">${escapeHtml(currentCategory)}</h2>`
+        );
+      }
+
+      listHtml.push(renderTodoAccordion(activity));
+    });
+  }
+
+  return `
+    <section
+      class="todo-screen todo-screen--location"
+      id="tips-${escapeHtml(destination.id)}"
+      aria-labelledby="todo-location-title"
+    >
+      <header class="todo-location-header">
+        <a class="todo-back" href="#todo" data-todo-back>
+          <span aria-hidden="true">←</span>
+          ${escapeHtml(destination.name)}
+        </a>
+        <h1 class="todo-screen-title" id="todo-location-title">${escapeHtml(destination.name)}</h1>
+        <p class="todo-screen-subtitle">Tik op een activiteit voor details</p>
+      </header>
+      <div class="todo-activity-list">
+        ${listHtml.join("")}
+      </div>
+    </section>
+  `;
+}
+
+function closeAllTodoAccordions(exceptId = null) {
+  thingsContainer.querySelectorAll(".todo-accordion.is-open").forEach((item) => {
+    if (exceptId && item.dataset.accordionId === exceptId) {
+      return;
+    }
+
+    item.classList.remove("is-open");
+    const trigger = item.querySelector(".todo-accordion-trigger");
+    if (trigger) {
+      trigger.setAttribute("aria-expanded", "false");
+    }
+  });
+}
+
+function toggleTodoAccordion(accordion) {
+  if (!accordion) {
+    return;
+  }
+
+  const isOpen = accordion.classList.contains("is-open");
+  const accordionId = accordion.dataset.accordionId;
+
+  closeAllTodoAccordions(isOpen ? null : accordionId);
+
+  if (isOpen) {
+    accordion.classList.remove("is-open");
+    accordion
+      .querySelector(".todo-accordion-trigger")
+      ?.setAttribute("aria-expanded", "false");
+    return;
+  }
+
+  accordion.classList.add("is-open");
+  accordion
+    .querySelector(".todo-accordion-trigger")
+    ?.setAttribute("aria-expanded", "true");
+}
+
+function renderTodoView(locationId = null) {
+  if (!appDestinations.length) {
+    return;
+  }
+
+  thingsContainer.classList.remove("todo-view-animate");
+
+  if (!locationId) {
+    thingsContainer.innerHTML = renderTodoDestinations(appDestinations);
+  } else {
+    const destination = appDestinations.find((item) => item.id === locationId);
+
+    if (!destination) {
+      thingsContainer.innerHTML = renderTodoDestinations(appDestinations);
+    } else {
+      thingsContainer.innerHTML = renderTodoLocation(destination);
+    }
+  }
+
+  requestAnimationFrame(() => {
+    thingsContainer.classList.add("todo-view-animate");
+  });
+}
+
+function initTodoInteractions() {
+  if (todoInteractionsBound) {
+    return;
+  }
+
+  todoInteractionsBound = true;
+
+  thingsContainer.addEventListener("click", (event) => {
+    const backLink = event.target.closest("[data-todo-back]");
+    if (backLink) {
+      event.preventDefault();
+      window.location.hash = "todo";
+      return;
+    }
+
+    const destinationCard = event.target.closest("[data-todo-destination]");
+    if (destinationCard) {
+      const destinationId = destinationCard.dataset.todoDestination;
+      window.location.hash = `todo/${destinationId}`;
+      return;
+    }
+
+    const accordionTrigger = event.target.closest("[data-todo-accordion]");
+    if (accordionTrigger) {
+      toggleTodoAccordion(accordionTrigger.closest(".todo-accordion"));
+    }
+  });
 }
 
 function startOfDay(date) {
@@ -1066,33 +1334,13 @@ function setActiveTab(tab, { focusTab = false } = {}) {
   }
 }
 
-function scrollToLocation(locationId) {
-  if (!locationId) {
-    return;
-  }
-
-  const section = document.getElementById(`tips-${locationId}`);
-  if (!section) {
-    return;
-  }
-
-  section.scrollIntoView({ behavior: "smooth", block: "start" });
-}
-
 function applyRouteFromHash() {
   const route = parseHash();
   setActiveTab(route.tab);
 
-  if (route.locationId) {
-    pendingScrollLocationId = route.locationId;
-    requestAnimationFrame(() => {
-      if (pendingScrollLocationId) {
-        scrollToLocation(pendingScrollLocationId);
-        pendingScrollLocationId = null;
-      }
-    });
-  } else {
-    pendingScrollLocationId = null;
+  if (route.tab === "todo") {
+    renderTodoView(route.locationId);
+    window.scrollTo({ top: 0, behavior: "auto" });
   }
 }
 
@@ -1166,6 +1414,7 @@ async function loadApp() {
 
     const destinations = await destinationsResponse.json();
     thingsData = await thingsResponse.json();
+    appDestinations = destinations;
 
     reisContainer.innerHTML = renderReis(destinations);
     reisContainer.classList.add("reis-animate");
@@ -1177,7 +1426,7 @@ async function loadApp() {
     });
     initGalleries(container);
 
-    thingsContainer.innerHTML = renderThingsToDo(destinations);
+    initTodoInteractions();
 
     initTabNavigation();
     applyRouteFromHash();
