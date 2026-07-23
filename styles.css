@@ -1274,3 +1274,293 @@ body {
     animation: none;
   }
 }
+
+/* ——— Planning (timeline) ——— */
+
+.planning {
+  min-height: 50vh;
+}
+
+.planning-header {
+  margin-bottom: var(--space-5);
+}
+
+.planning-title {
+  margin: 0;
+  font-size: 1.75rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--color-text);
+}
+
+.planning-subtitle {
+  margin: 0.35rem 0 0;
+  color: var(--color-text-muted);
+  font-size: 0.975rem;
+}
+
+.planning-empty {
+  margin: 0;
+  padding: var(--space-5);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+  box-shadow: var(--shadow-soft);
+}
+
+.planning-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.planning-day-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-3);
+}
+
+.planning-day-title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  color: var(--color-text);
+}
+
+.planning-day-location {
+  margin: 0.2rem 0 0;
+  color: var(--color-text-muted);
+  font-size: 0.9375rem;
+  font-weight: 500;
+}
+
+.planning-day-badge {
+  flex: 0 0 auto;
+  margin-top: 0.2rem;
+  padding: 0.3rem 0.65rem;
+  border-radius: 999px;
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.planning-day.is-today .planning-day-title {
+  color: var(--color-primary);
+}
+
+.planning-events {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.planning-event {
+  display: flex;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border-radius: 1.15rem;
+  background: var(--color-surface);
+  box-shadow: var(--shadow-soft);
+}
+
+.planning-event--idea {
+  display: block;
+  padding: 0;
+  overflow: hidden;
+}
+
+.planning-event-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 0.85rem;
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+}
+
+.planning-event-icon svg {
+  display: block;
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.planning-event-copy {
+  min-width: 0;
+  flex: 1;
+}
+
+.planning-event-title {
+  margin: 0;
+  font-size: 1.0625rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.planning-event-text {
+  margin: 0.3rem 0 0;
+  color: var(--color-text-body);
+  font-size: 0.95rem;
+  line-height: 1.45;
+}
+
+.planning-event-meta {
+  margin: 0.35rem 0 0;
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+}
+
+.planning-event-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+}
+
+.planning-event-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.5rem;
+  padding: 0.55rem 0.9rem;
+  border-radius: 999px;
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.planning-event-link:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.planning-event-trigger {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  min-height: 4.5rem;
+  padding: var(--space-4);
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: transform var(--motion-fast), opacity var(--motion-fast);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.planning-event-trigger:active {
+  transform: scale(0.99);
+  opacity: 0.96;
+}
+
+.planning-event-trigger:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: -2px;
+}
+
+.planning-event-chevron {
+  flex: 0 0 auto;
+  width: 0.55rem;
+  height: 0.55rem;
+  margin-left: auto;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  color: var(--color-text-muted);
+  transform: rotate(-45deg);
+  transition: transform var(--motion-fast);
+}
+
+.planning-event--idea.is-open .planning-event-chevron {
+  transform: rotate(45deg);
+}
+
+.planning-event-panel {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 280ms ease-out;
+}
+
+.planning-event--idea.is-open .planning-event-panel {
+  grid-template-rows: 1fr;
+}
+
+.planning-event-panel-inner {
+  overflow: hidden;
+  padding: 0 var(--space-4);
+}
+
+.planning-event--idea.is-open .planning-event-panel-inner {
+  padding-bottom: var(--space-4);
+}
+
+.planning-steps {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.planning-step + .planning-step {
+  margin-top: var(--space-3);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--color-border-subtle);
+}
+
+.planning-step-time {
+  margin: 0 0 0.2rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-primary);
+}
+
+.planning-step-title {
+  margin: 0 0 0.15rem;
+  font-size: 0.975rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.planning-step-text {
+  margin: 0;
+  color: var(--color-text-body);
+  font-size: 0.9375rem;
+  line-height: 1.45;
+}
+
+.planning-animate .planning-screen {
+  animation: planning-fade-up 260ms ease-out;
+}
+
+@keyframes planning-fade-up {
+  from {
+    transform: translateY(8px);
+  }
+
+  to {
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .planning-event-trigger,
+  .planning-event-chevron,
+  .planning-event-panel {
+    transition: none;
+  }
+
+  .planning-animate .planning-screen {
+    animation: none;
+  }
+}

@@ -1,4 +1,4 @@
-const container = document.getElementById("destinations");
+const planningContainer = document.getElementById("planning");
 const thingsContainer = document.getElementById("things-to-do");
 const reisContainer = document.getElementById("reis");
 const tabBar = document.querySelector(".tab-bar");
@@ -40,6 +40,7 @@ let thingsData = null;
 let appDestinations = [];
 let photoViewer = null;
 let todoInteractionsBound = false;
+let planningInteractionsBound = false;
 
 function escapeHtml(value) {
   return String(value)
@@ -1381,8 +1382,346 @@ function initTabNavigation() {
   window.addEventListener("hashchange", applyRouteFromHash);
 }
 
+function formatDutchDayLabel(date) {
+  const monthNames = Object.keys(DUTCH_MONTHS);
+  return `${date.getDate()} ${monthNames[date.getMonth()]}`;
+}
+
+function formatTripRangeLabel(destinations) {
+  const dated = withDateRanges(destinations);
+  const bounds = getTripBounds(dated);
+
+  if (!bounds) {
+    return "";
+  }
+
+  const startLabel = formatDutchDayLabel(bounds.start);
+  const endLabel = formatDutchDayLabel(bounds.end);
+
+  return `${startLabel} – ${endLabel} ${bounds.start.getFullYear()}`;
+}
+
+function getMapsUrl(destination) {
+  if (destination.lat != null && destination.lng != null) {
+    return `https://www.google.com/maps?q=${destination.lat},${destination.lng}&hl=nl`;
+  }
+
+  if (destination.address) {
+    return `https://www.google.com/maps?q=${encodeURIComponent(destination.address)}&hl=nl`;
+  }
+
+  return null;
+}
+
+function parseTravelEvents(travel) {
+  if (!travel) {
+    return [];
+  }
+
+  return String(travel)
+    .split(/(?<=\.)\s+/)
+    .map((sentence) => sentence.trim())
+    .filter(Boolean)
+    .map((sentence) => {
+      const lower = sentence.toLowerCase();
+
+      if (lower.includes("vlucht") || lower.includes("aankomst")) {
+        return {
+          type: "flight",
+          title: "Vlucht",
+          text: sentence.replace(/\.$/, ""),
+        };
+      }
+
+      if (lower.includes("huurauto") && lower.includes("ingeleverd")) {
+        return {
+          type: "car",
+          title: "Huurauto inleveren",
+          text: sentence.replace(/\.$/, ""),
+        };
+      }
+
+      if (lower.includes("huurauto")) {
+        return {
+          type: "car",
+          title: "Huurauto ophalen",
+          text: sentence.replace(/\.$/, ""),
+        };
+      }
+
+      return {
+        type: "travel",
+        title: "Onderweg",
+        text: sentence.replace(/\.$/, ""),
+      };
+    });
+}
+
+function buildPlanningTimeline(destinations) {
+  const dated = withDateRanges(destinations);
+  const days = [];
+  const today = startOfDay(new Date());
+
+  dated.forEach((destination) => {
+    if (!destination.startDate || !destination.endDate) {
+      return;
+    }
+
+    const dayPlans = getLocationTips(destination.id)?.dayPlans || [];
+    let planIndex = 0;
+    const cursor = startOfDay(destination.startDate);
+    const end = startOfDay(destination.endDate);
+    let stayOffset = 0;
+
+    while (cursor < end) {
+      const events = [];
+      const isCheckIn = stayOffset === 0;
+
+      if (isCheckIn) {
+        parseTravelEvents(destination.travel).forEach((event) => {
+          events.push(event);
+        });
+
+        events.push({
+          type: "stay",
+          title: "Accommodatie",
+          text: destination.accommodation || destination.name,
+          meta: [destination.address, destination.nights ? `${destination.nights} nachten` : null]
+            .filter(Boolean)
+            .join(" · "),
+          mapsUrl: getMapsUrl(destination),
+          tipsHref: `#todo/${destination.id}`,
+        });
+      } else if (planIndex < dayPlans.length) {
+        const dayPlan = dayPlans[planIndex];
+        planIndex += 1;
+        events.push({
+          type: "idea",
+          title: dayPlan.title || "Dagidee",
+          text: "Mogelijke dagindeling",
+          dayPlan,
+        });
+      } else {
+        events.push({
+          type: "stay",
+          title: "Verblijf",
+          text: destination.accommodation || destination.name,
+          meta: destination.name,
+        });
+      }
+
+      days.push({
+        key: cursor.toISOString().slice(0, 10),
+        date: new Date(cursor),
+        label: formatDutchDayLabel(cursor),
+        locationName: destination.name,
+        locationId: destination.id,
+        isToday: cursor.getTime() === today.getTime(),
+        events,
+      });
+
+      cursor.setDate(cursor.getDate() + 1);
+      stayOffset += 1;
+    }
+  });
+
+  return days;
+}
+
+function renderPlanningEventIcon(type) {
+  if (type === "flight") {
+    return `
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M3 13.5 21 4l-3.2 9.2L21 20l-18-5.5 5.2-1Z" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linejoin="round"/>
+      </svg>
+    `;
+  }
+
+  if (type === "car") {
+    return `
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M4 15.5h16l-1.2-4.2a2 2 0 0 0-1.9-1.3H7.1a2 2 0 0 0-1.9 1.3L4 15.5Z" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linejoin="round"/>
+        <path d="M6.5 15.5v2M17.5 15.5v2M7 18.5h2M15 18.5h2" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>
+      </svg>
+    `;
+  }
+
+  if (type === "idea") {
+    return `
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M9 18h6M10 21h4M8 10a4 4 0 1 1 8 0c0 1.8-1 2.7-2 3.5-.7.6-1 1.2-1 2.5h-2c0-1.3-.3-1.9-1-2.5-1-.8-2-1.7-2-3.5Z" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    `;
+  }
+
+  return `
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M4.5 10.5V20h15V10.5" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linejoin="round"/>
+      <path d="M3 11.5 12 4l9 7.5" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  `;
+}
+
+function renderPlanningDayPlanDetails(dayPlan) {
+  const steps = (dayPlan.steps || [])
+    .map(
+      (step) => `
+        <li class="planning-step">
+          ${step.time ? `<p class="planning-step-time">${escapeHtml(step.time)}</p>` : ""}
+          ${step.title ? `<p class="planning-step-title">${escapeHtml(step.title)}</p>` : ""}
+          ${step.text ? `<p class="planning-step-text">${escapeHtml(step.text)}</p>` : ""}
+        </li>
+      `
+    )
+    .join("");
+
+  return `<ol class="planning-steps">${steps}</ol>`;
+}
+
+function renderPlanningEvent(event, index) {
+  const links = [];
+
+  if (event.mapsUrl) {
+    links.push(
+      `<a class="planning-event-link" href="${escapeHtml(event.mapsUrl)}" target="_blank" rel="noopener noreferrer">Open in Google Maps</a>`
+    );
+  }
+
+  if (event.tipsHref) {
+    links.push(
+      `<a class="planning-event-link" href="${escapeHtml(event.tipsHref)}">Bekijk tips</a>`
+    );
+  }
+
+  if (event.type === "idea" && event.dayPlan) {
+    return `
+      <article class="planning-event planning-event--idea" data-planning-accordion>
+        <button
+          type="button"
+          class="planning-event-trigger"
+          aria-expanded="false"
+          data-planning-accordion-trigger
+        >
+          <span class="planning-event-icon" aria-hidden="true">
+            ${renderPlanningEventIcon(event.type)}
+          </span>
+          <span class="planning-event-copy">
+            <span class="planning-event-title">${escapeHtml(event.title)}</span>
+            <span class="planning-event-text">${escapeHtml(event.text || "Tik voor het dagplan")}</span>
+          </span>
+          <span class="planning-event-chevron" aria-hidden="true"></span>
+        </button>
+        <div class="planning-event-panel">
+          <div class="planning-event-panel-inner">
+            ${renderPlanningDayPlanDetails(event.dayPlan)}
+          </div>
+        </div>
+      </article>
+    `;
+  }
+
+  return `
+    <article class="planning-event planning-event--${escapeHtml(event.type)}">
+      <span class="planning-event-icon" aria-hidden="true">
+        ${renderPlanningEventIcon(event.type)}
+      </span>
+      <div class="planning-event-copy">
+        <h3 class="planning-event-title">${escapeHtml(event.title)}</h3>
+        ${event.text ? `<p class="planning-event-text">${escapeHtml(event.text)}</p>` : ""}
+        ${event.meta ? `<p class="planning-event-meta">${escapeHtml(event.meta)}</p>` : ""}
+        ${links.length ? `<div class="planning-event-links">${links.join("")}</div>` : ""}
+      </div>
+    </article>
+  `;
+}
+
+function renderPlanning(destinations) {
+  const days = buildPlanningTimeline(destinations);
+  const rangeLabel = formatTripRangeLabel(destinations);
+
+  if (!days.length) {
+    return `
+      <section class="planning-screen">
+        <header class="planning-header">
+          <h1 class="planning-title">Planning</h1>
+        </header>
+        <p class="planning-empty">De planning wordt nog toegevoegd.</p>
+      </section>
+    `;
+  }
+
+  const daysHtml = days
+    .map((day) => {
+      const eventsHtml = day.events
+        .map((event, index) => renderPlanningEvent(event, index))
+        .join("");
+
+      return `
+        <section class="planning-day${day.isToday ? " is-today" : ""}" aria-labelledby="planning-day-${day.key}">
+          <header class="planning-day-header">
+            <div>
+              <h2 class="planning-day-title" id="planning-day-${day.key}">${escapeHtml(day.label)}</h2>
+              <p class="planning-day-location">${escapeHtml(day.locationName)}</p>
+            </div>
+            ${day.isToday ? `<span class="planning-day-badge">Vandaag</span>` : ""}
+          </header>
+          <div class="planning-events">
+            ${eventsHtml}
+          </div>
+        </section>
+      `;
+    })
+    .join("");
+
+  return `
+    <section class="planning-screen">
+      <header class="planning-header">
+        <h1 class="planning-title">Planning</h1>
+        ${rangeLabel ? `<p class="planning-subtitle">${escapeHtml(rangeLabel)}</p>` : ""}
+      </header>
+      <div class="planning-timeline">
+        ${daysHtml}
+      </div>
+    </section>
+  `;
+}
+
+function initPlanningInteractions() {
+  if (planningInteractionsBound) {
+    return;
+  }
+
+  planningInteractionsBound = true;
+
+  planningContainer.addEventListener("click", (event) => {
+    const trigger = event.target.closest("[data-planning-accordion-trigger]");
+    if (!trigger) {
+      return;
+    }
+
+    const accordion = trigger.closest("[data-planning-accordion]");
+    if (!accordion) {
+      return;
+    }
+
+    const willOpen = !accordion.classList.contains("is-open");
+
+    planningContainer.querySelectorAll("[data-planning-accordion].is-open").forEach((item) => {
+      item.classList.remove("is-open");
+      item
+        .querySelector("[data-planning-accordion-trigger]")
+        ?.setAttribute("aria-expanded", "false");
+    });
+
+    if (willOpen) {
+      accordion.classList.add("is-open");
+      trigger.setAttribute("aria-expanded", "true");
+    }
+  });
+}
+
 function showError(message) {
-  container.innerHTML = `<p class="error">${message}</p>`;
+  planningContainer.innerHTML = `<p class="error">${message}</p>`;
 }
 
 function showThingsError(message) {
@@ -1420,11 +1759,9 @@ async function loadApp() {
     reisContainer.classList.add("reis-animate");
     initReisInteractions(reisContainer);
 
-    container.innerHTML = "";
-    destinations.forEach((destination) => {
-      container.appendChild(renderCard(destination));
-    });
-    initGalleries(container);
+    planningContainer.innerHTML = renderPlanning(destinations);
+    planningContainer.classList.add("planning-animate");
+    initPlanningInteractions();
 
     initTodoInteractions();
 
