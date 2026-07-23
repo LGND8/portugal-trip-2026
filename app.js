@@ -1,12 +1,46 @@
-const container = document.getElementById("destinations");
+const planningContainer = document.getElementById("planning");
 const thingsContainer = document.getElementById("things-to-do");
+const reisContainer = document.getElementById("reis");
 const tabBar = document.querySelector(".tab-bar");
 const tabButtons = tabBar.querySelectorAll(".tab-btn");
-const tabPlanning = document.getElementById("tab-planning");
-const tabThingsToDo = document.getElementById("tab-things-to-do");
+const tabPanels = {
+  reis: document.getElementById("tab-reis"),
+  route: document.getElementById("tab-route"),
+  todo: document.getElementById("tab-todo"),
+  planning: document.getElementById("tab-planning"),
+};
+
+const VALID_TABS = ["reis", "route", "todo", "planning"];
+const DUTCH_MONTHS = {
+  januari: 0,
+  februari: 1,
+  maart: 2,
+  april: 3,
+  mei: 4,
+  juni: 5,
+  juli: 6,
+  augustus: 7,
+  september: 8,
+  oktober: 9,
+  november: 10,
+  december: 11,
+};
+
+const CATEGORY_TEASER_LABELS = {
+  highlights: "Hoogtepunten",
+  beaches: "Stranden",
+  activities: "Activiteiten",
+  food: "Restaurants",
+  shops: "Winkels",
+  kids: "Met kinderen",
+  practical: "Praktisch",
+};
 
 let thingsData = null;
-let pendingScrollLocationId = null;
+let appDestinations = [];
+let photoViewer = null;
+let todoInteractionsBound = false;
+let planningInteractionsBound = false;
 
 function escapeHtml(value) {
   return String(value)
@@ -164,7 +198,7 @@ function initGalleries(root) {
 
 function buildTipsLink(destination) {
   return `
-    <a class="tips-link" href="#things-to-do/${destination.id}">
+    <a class="tips-link" href="#todo/${destination.id}">
       Bekijk tips voor ${escapeHtml(destination.name)}
     </a>
   `;
@@ -213,207 +247,1101 @@ function getLocationTips(locationId) {
   return thingsData.locations.find((location) => location.id === locationId) || null;
 }
 
-function hasLocationTips(locationData) {
-  if (!locationData) {
-    return false;
+function countLocationActivities(locationData) {
+  if (!locationData?.tips) {
+    return 0;
   }
 
-  const tips = locationData.tips || {};
+  return Object.values(locationData.tips).reduce(
+    (sum, items) => sum + (items?.length || 0),
+    0
+  );
+}
 
-  for (const category of thingsData.categories || []) {
-    if (tips[category.id]?.length) {
-      return true;
+function getCategoryTeasers(locationData, limit = 3) {
+  const tips = locationData?.tips || {};
+  const preferredOrder = [
+    "beaches",
+    "food",
+    "activities",
+    "highlights",
+    "kids",
+    "shops",
+    "practical",
+  ];
+  const labels = [];
+
+  for (const categoryId of preferredOrder) {
+    if (!tips[categoryId]?.length) {
+      continue;
+    }
+
+    labels.push(CATEGORY_TEASER_LABELS[categoryId] || categoryId);
+
+    if (labels.length >= limit) {
+      break;
     }
   }
 
-  return Boolean(locationData.dayPlans?.length);
+  return labels;
 }
 
-function renderTipItem(tip) {
-  const title = tip.title ? `<h4 class="tip-title">${escapeHtml(tip.title)}</h4>` : "";
-  const text = tip.text ? `<p class="tip-text">${escapeHtml(tip.text)}</p>` : "";
-  const note = tip.note
-    ? `<p class="tip-note">${escapeHtml(tip.note)}</p>`
-    : "";
-  const familyFriendly = tip.familyFriendly
-    ? `<p class="tip-badge">Geschikt voor gezinnen</p>`
-    : "";
-  const url = tip.url
-    ? `<p><a class="tip-link" href="${escapeHtml(tip.url)}" target="_blank" rel="noopener noreferrer">Meer info</a></p>`
-    : "";
-  const mapUrl = tip.mapUrl
-    ? `<p><a class="tip-link" href="${escapeHtml(tip.mapUrl)}" target="_blank" rel="noopener noreferrer">Open in Google Maps</a></p>`
+function getLocationActivities(destination) {
+  const locationData = getLocationTips(destination.id);
+  const activities = [];
+
+  if (!locationData) {
+    return activities;
+  }
+
+  for (const category of thingsData?.categories || []) {
+    const items = locationData.tips?.[category.id] || [];
+
+    items.forEach((tip, index) => {
+      activities.push({
+        id: `${destination.id}:${category.id}:${index}`,
+        kind: "tip",
+        categoryId: category.id,
+        categoryTitle: CATEGORY_TEASER_LABELS[category.id] || category.title,
+        tip,
+      });
+    });
+  }
+
+  (locationData.dayPlans || []).forEach((dayPlan, index) => {
+    activities.push({
+      id: `${destination.id}:dayplan:${index}`,
+      kind: "dayplan",
+      categoryId: "dayplan",
+      categoryTitle: "Dagindelingen",
+      dayPlan,
+    });
+  });
+
+  return activities;
+}
+
+function renderTodoTipDetails(tip) {
+  const photos = tip.photos?.length
+    ? tip.photos
+    : tip.photo
+      ? [tip.photo]
+      : [];
+  const hours = tip.hours || tip.openingHours || tip.openingstijden;
+  const photoHtml = photos.length
+    ? `
+      <div class="todo-detail-photos">
+        ${photos
+          .map(
+            (photo) => `
+              <img
+                src="${escapeHtml(typeof photo === "string" ? photo : photo.src)}"
+                alt="${escapeHtml(
+                  typeof photo === "string" ? tip.title || "" : photo.alt || tip.title || ""
+                )}"
+                loading="lazy"
+              >
+            `
+          )
+          .join("")}
+      </div>
+    `
     : "";
 
   return `
-    <li class="tip-item">
-      ${title}
-      ${text}
-      ${note}
-      ${familyFriendly}
-      ${url}
-      ${mapUrl}
-    </li>
+    ${photoHtml}
+    ${tip.text ? `<p class="todo-detail-text">${escapeHtml(tip.text)}</p>` : ""}
+    ${
+      tip.note
+        ? `<p class="todo-detail-note"><span>Tip</span>${escapeHtml(tip.note)}</p>`
+        : ""
+    }
+    ${
+      hours
+        ? `<p class="todo-detail-meta"><span>Openingstijden</span>${escapeHtml(hours)}</p>`
+        : ""
+    }
+    ${
+      tip.familyFriendly
+        ? `<p class="todo-detail-badge">Geschikt voor gezinnen</p>`
+        : ""
+    }
+    <div class="todo-detail-links">
+      ${
+        tip.url
+          ? `<a class="todo-detail-link" href="${escapeHtml(tip.url)}" target="_blank" rel="noopener noreferrer">Meer info</a>`
+          : ""
+      }
+      ${
+        tip.mapUrl
+          ? `<a class="todo-detail-link" href="${escapeHtml(tip.mapUrl)}" target="_blank" rel="noopener noreferrer">Open in Google Maps</a>`
+          : ""
+      }
+    </div>
   `;
 }
 
-function renderDayPlan(dayPlan) {
+function renderTodoDayPlanDetails(dayPlan) {
   const steps = (dayPlan.steps || [])
     .map(
       (step) => `
-        <li class="day-step">
-          ${step.time ? `<p class="day-step-time">${escapeHtml(step.time)}</p>` : ""}
-          ${step.title ? `<h5 class="day-step-title">${escapeHtml(step.title)}</h5>` : ""}
-          ${step.text ? `<p class="day-step-text">${escapeHtml(step.text)}</p>` : ""}
+        <li class="todo-day-step">
+          ${step.time ? `<p class="todo-day-step-time">${escapeHtml(step.time)}</p>` : ""}
+          ${step.title ? `<p class="todo-day-step-title">${escapeHtml(step.title)}</p>` : ""}
+          ${step.text ? `<p class="todo-day-step-text">${escapeHtml(step.text)}</p>` : ""}
         </li>
       `
     )
     .join("");
 
   return `
-    <article class="day-plan">
-      ${dayPlan.title ? `<h4 class="day-plan-title">${escapeHtml(dayPlan.title)}</h4>` : ""}
-      <ol class="day-steps">${steps}</ol>
+    ${dayPlan.title ? `<p class="todo-detail-text">${escapeHtml(dayPlan.title)}</p>` : ""}
+    <ol class="todo-day-steps">${steps}</ol>
+  `;
+}
+
+function renderTodoAccordion(activity) {
+  const title =
+    activity.kind === "dayplan"
+      ? activity.dayPlan.title || "Dagindeling"
+      : activity.tip.title || "Activiteit";
+  const details =
+    activity.kind === "dayplan"
+      ? renderTodoDayPlanDetails(activity.dayPlan)
+      : renderTodoTipDetails(activity.tip);
+
+  return `
+    <article class="todo-accordion" data-accordion-id="${escapeHtml(activity.id)}">
+      <button
+        type="button"
+        class="todo-accordion-trigger"
+        data-todo-accordion
+        aria-expanded="false"
+      >
+        <span class="todo-accordion-copy">
+          <span class="todo-accordion-title">${escapeHtml(title)}</span>
+        </span>
+        <span class="todo-accordion-chevron" aria-hidden="true"></span>
+      </button>
+      <div class="todo-accordion-panel">
+        <div class="todo-accordion-panel-inner">
+          ${details}
+        </div>
+      </div>
     </article>
   `;
 }
 
-function renderLocationTipsSection(destination) {
-  const locationData = getLocationTips(destination.id);
-  const sectionId = `tips-${destination.id}`;
-
-  if (!hasLocationTips(locationData)) {
-    return `
-      <section class="tips-section" id="${sectionId}">
-        <h2 class="tips-section-title">${escapeHtml(destination.name)}</h2>
-        <p class="tips-empty">Voor deze locatie worden de tips nog toegevoegd.</p>
-      </section>
-    `;
-  }
-
-  const tips = locationData.tips || {};
-  const categoriesHtml = (thingsData.categories || [])
-    .map((category) => {
-      const items = tips[category.id] || [];
-      if (!items.length) {
-        return "";
-      }
-
-      const itemsHtml = items.map((tip) => renderTipItem(tip)).join("");
+function renderTodoDestinations(destinations) {
+  const cards = destinations
+    .map((destination) => {
+      const locationData = getLocationTips(destination.id);
+      const count = countLocationActivities(locationData);
+      const teasers = getCategoryTeasers(locationData);
+      const photo = destination.photos?.[0];
+      const countLabel =
+        count === 0
+          ? "Tips volgen nog"
+          : count === 1
+            ? "1 activiteit"
+            : `${count} activiteiten`;
+      const teaserLabel = teasers.length ? teasers.join(" • ") : destination.description;
 
       return `
-        <section class="tips-category">
-          <h3 class="tips-category-title">${escapeHtml(category.title)}</h3>
-          <ul class="tips-list">${itemsHtml}</ul>
-        </section>
+        <button
+          type="button"
+          class="todo-destination-card"
+          data-todo-destination="${escapeHtml(destination.id)}"
+        >
+          <span class="todo-destination-media">
+            ${
+              photo
+                ? `<img
+                    src="${escapeHtml(photo.src)}"
+                    alt=""
+                    loading="lazy"
+                  >`
+                : ""
+            }
+          </span>
+          <span class="todo-destination-body">
+            <span class="todo-destination-copy">
+              <span class="todo-destination-name">${escapeHtml(destination.name)}</span>
+              <span class="todo-destination-count">${escapeHtml(countLabel)}</span>
+              <span class="todo-destination-teaser">${escapeHtml(teaserLabel)}</span>
+            </span>
+            <span class="todo-destination-chevron" aria-hidden="true"></span>
+          </span>
+        </button>
       `;
     })
-    .filter(Boolean)
     .join("");
 
-  const dayPlansHtml = (locationData.dayPlans || []).length
-    ? `
-        <section class="tips-category">
-          <h3 class="tips-category-title">Mogelijke dagindelingen</h3>
-          <div class="day-plans">
-            ${locationData.dayPlans.map((dayPlan) => renderDayPlan(dayPlan)).join("")}
-          </div>
-        </section>
-      `
-    : "";
-
   return `
-    <section class="tips-section" id="${sectionId}">
-      <h2 class="tips-section-title">${escapeHtml(destination.name)}</h2>
-      ${categoriesHtml}
-      ${dayPlansHtml}
+    <section class="todo-screen todo-screen--destinations" aria-labelledby="todo-destinations-title">
+      <header class="todo-screen-header">
+        <h1 class="todo-screen-title" id="todo-destinations-title">To Do</h1>
+        <p class="todo-screen-subtitle">Kies een bestemming</p>
+      </header>
+      <div class="todo-destination-list">
+        ${cards}
+      </div>
     </section>
   `;
 }
 
-function renderThingsToDo(destinations) {
-  return destinations.map((destination) => renderLocationTipsSection(destination)).join("");
+function renderTodoLocation(destination) {
+  const activities = getLocationActivities(destination);
+  let currentCategory = null;
+  const listHtml = [];
+
+  if (!activities.length) {
+    listHtml.push(`
+      <p class="todo-empty">
+        Voor ${escapeHtml(destination.name)} worden de tips nog toegevoegd.
+      </p>
+    `);
+  } else {
+    activities.forEach((activity) => {
+      if (activity.categoryTitle !== currentCategory) {
+        currentCategory = activity.categoryTitle;
+        listHtml.push(
+          `<h2 class="todo-category-label">${escapeHtml(currentCategory)}</h2>`
+        );
+      }
+
+      listHtml.push(renderTodoAccordion(activity));
+    });
+  }
+
+  return `
+    <section
+      class="todo-screen todo-screen--location"
+      id="tips-${escapeHtml(destination.id)}"
+      aria-labelledby="todo-location-title"
+    >
+      <header class="todo-location-header">
+        <a class="todo-back" href="#todo" data-todo-back>
+          <span aria-hidden="true">←</span>
+          ${escapeHtml(destination.name)}
+        </a>
+        <h1 class="todo-screen-title" id="todo-location-title">${escapeHtml(destination.name)}</h1>
+        <p class="todo-screen-subtitle">Tik op een activiteit voor details</p>
+      </header>
+      <div class="todo-activity-list">
+        ${listHtml.join("")}
+      </div>
+    </section>
+  `;
+}
+
+function closeAllTodoAccordions(exceptId = null) {
+  thingsContainer.querySelectorAll(".todo-accordion.is-open").forEach((item) => {
+    if (exceptId && item.dataset.accordionId === exceptId) {
+      return;
+    }
+
+    item.classList.remove("is-open");
+    const trigger = item.querySelector(".todo-accordion-trigger");
+    if (trigger) {
+      trigger.setAttribute("aria-expanded", "false");
+    }
+  });
+}
+
+function toggleTodoAccordion(accordion) {
+  if (!accordion) {
+    return;
+  }
+
+  const isOpen = accordion.classList.contains("is-open");
+  const accordionId = accordion.dataset.accordionId;
+
+  closeAllTodoAccordions(isOpen ? null : accordionId);
+
+  if (isOpen) {
+    accordion.classList.remove("is-open");
+    accordion
+      .querySelector(".todo-accordion-trigger")
+      ?.setAttribute("aria-expanded", "false");
+    return;
+  }
+
+  accordion.classList.add("is-open");
+  accordion
+    .querySelector(".todo-accordion-trigger")
+    ?.setAttribute("aria-expanded", "true");
+}
+
+function renderTodoView(locationId = null) {
+  if (!appDestinations.length) {
+    return;
+  }
+
+  thingsContainer.classList.remove("todo-view-animate");
+
+  if (!locationId) {
+    thingsContainer.innerHTML = renderTodoDestinations(appDestinations);
+  } else {
+    const destination = appDestinations.find((item) => item.id === locationId);
+
+    if (!destination) {
+      thingsContainer.innerHTML = renderTodoDestinations(appDestinations);
+    } else {
+      thingsContainer.innerHTML = renderTodoLocation(destination);
+    }
+  }
+
+  requestAnimationFrame(() => {
+    thingsContainer.classList.add("todo-view-animate");
+  });
+}
+
+function initTodoInteractions() {
+  if (todoInteractionsBound) {
+    return;
+  }
+
+  todoInteractionsBound = true;
+
+  thingsContainer.addEventListener("click", (event) => {
+    const backLink = event.target.closest("[data-todo-back]");
+    if (backLink) {
+      event.preventDefault();
+      window.location.hash = "todo";
+      return;
+    }
+
+    const destinationCard = event.target.closest("[data-todo-destination]");
+    if (destinationCard) {
+      const destinationId = destinationCard.dataset.todoDestination;
+      window.location.hash = `todo/${destinationId}`;
+      return;
+    }
+
+    const accordionTrigger = event.target.closest("[data-todo-accordion]");
+    if (accordionTrigger) {
+      toggleTodoAccordion(accordionTrigger.closest(".todo-accordion"));
+    }
+  });
+}
+
+function startOfDay(date) {
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+}
+
+function daysBetween(start, end) {
+  const msPerDay = 24 * 60 * 60 * 1000;
+  return Math.round((startOfDay(end) - startOfDay(start)) / msPerDay);
+}
+
+function parseDestinationRange(dates) {
+  const normalized = String(dates)
+    .replace(/–/g, "-")
+    .replace(/\s+/g, " ")
+    .trim()
+    .toLowerCase();
+
+  let match = normalized.match(
+    /^(\d{1,2})\s*-\s*(\d{1,2})\s+([a-z]+)\s+(\d{4})$/
+  );
+
+  if (match) {
+    const month = DUTCH_MONTHS[match[3]];
+    const year = Number(match[4]);
+
+    if (month == null) {
+      return null;
+    }
+
+    return {
+      start: new Date(year, month, Number(match[1])),
+      end: new Date(year, month, Number(match[2])),
+    };
+  }
+
+  match = normalized.match(
+    /^(\d{1,2})\s+([a-z]+)\s*-\s*(\d{1,2})\s+([a-z]+)\s+(\d{4})$/
+  );
+
+  if (match) {
+    const startMonth = DUTCH_MONTHS[match[2]];
+    const endMonth = DUTCH_MONTHS[match[4]];
+    const year = Number(match[5]);
+
+    if (startMonth == null || endMonth == null) {
+      return null;
+    }
+
+    return {
+      start: new Date(year, startMonth, Number(match[1])),
+      end: new Date(year, endMonth, Number(match[3])),
+    };
+  }
+
+  return null;
+}
+
+function withDateRanges(destinations) {
+  return destinations.map((destination) => {
+    const range = parseDestinationRange(destination.dates);
+    return {
+      ...destination,
+      startDate: range?.start || null,
+      endDate: range?.end || null,
+    };
+  });
+}
+
+function getTripBounds(destinations) {
+  const dated = destinations.filter((item) => item.startDate && item.endDate);
+
+  if (!dated.length) {
+    return null;
+  }
+
+  return {
+    start: dated[0].startDate,
+    end: dated[dated.length - 1].endDate,
+  };
+}
+
+function getActiveDestination(destinations, today) {
+  const current = startOfDay(today);
+
+  return (
+    destinations.find((destination) => {
+      if (!destination.startDate || !destination.endDate) {
+        return false;
+      }
+
+      return current >= destination.startDate && current < destination.endDate;
+    }) || null
+  );
+}
+
+function getNextDestination(destinations, today) {
+  const current = startOfDay(today);
+
+  return (
+    destinations.find((destination) => {
+      if (!destination.startDate) {
+        return false;
+      }
+
+      return destination.startDate > current;
+    }) || null
+  );
+}
+
+function getTripStatus(destinations, today = new Date()) {
+  const bounds = getTripBounds(destinations);
+
+  if (!bounds) {
+    return {
+      label: "Portugal Familievakantie",
+      progress: 0,
+      currentId: null,
+    };
+  }
+
+  const current = startOfDay(today);
+  const totalDays = Math.max(daysBetween(bounds.start, bounds.end), 1);
+
+  if (current < bounds.start) {
+    const daysUntil = daysBetween(current, bounds.start);
+
+    if (daysUntil === 1) {
+      return { label: "Morgen vertrek", progress: 0, currentId: null };
+    }
+
+    return {
+      label: `Nog ${daysUntil} dagen tot vertrek`,
+      progress: 0,
+      currentId: null,
+    };
+  }
+
+  if (current >= bounds.end) {
+    return {
+      label: "Reis afgerond — tot de volgende",
+      progress: 1,
+      currentId: null,
+    };
+  }
+
+  const active = getActiveDestination(destinations, current);
+
+  if (active) {
+    const elapsed = daysBetween(bounds.start, current);
+    return {
+      label: `Vandaag in ${active.name}`,
+      progress: Math.min(Math.max(elapsed / totalDays, 0.05), 0.95),
+      currentId: active.id,
+    };
+  }
+
+  const next = getNextDestination(destinations, current);
+
+  if (next) {
+    const daysUntil = daysBetween(current, next.startDate);
+    const elapsed = daysBetween(bounds.start, current);
+    const label =
+      daysUntil <= 1 ? `Morgen naar ${next.name}` : `Onderweg naar ${next.name}`;
+
+    return {
+      label,
+      progress: Math.min(Math.max(elapsed / totalDays, 0.05), 0.95),
+      currentId: null,
+    };
+  }
+
+  return {
+    label: "Onderweg in Portugal",
+    progress: 0.5,
+    currentId: null,
+  };
+}
+
+function getHeroDestination(destinations, status) {
+  if (status.currentId) {
+    return destinations.find((item) => item.id === status.currentId) || destinations[0];
+  }
+
+  const next = getNextDestination(destinations, new Date());
+  return next || destinations[0];
+}
+
+function buildJourneyStops(destinations) {
+  const first = destinations[0];
+  const monthNames = Object.keys(DUTCH_MONTHS);
+  const arrivalMeta = first?.startDate
+    ? `Aankomst ${first.startDate.getDate()} ${monthNames[first.startDate.getMonth()]}`
+    : "Aankomst";
+
+  const stops = [
+    {
+      id: "arrival-lisbon",
+      name: "Lissabon",
+      meta: arrivalMeta,
+      destinationId: null,
+    },
+  ];
+
+  destinations.forEach((destination) => {
+    const nightsLabel =
+      destination.nights === 1
+        ? "1 nacht"
+        : `${destination.nights} nachten`;
+
+    stops.push({
+      id: destination.id,
+      name: destination.name,
+      meta: `${destination.dates} · ${nightsLabel}`,
+      destinationId: destination.id,
+    });
+  });
+
+  return stops;
+}
+
+function collectHighlights(destinations, limit = 4) {
+  const preferred = [];
+  const fallback = [];
+
+  destinations.forEach((destination, destinationIndex) => {
+    const tips = getLocationTips(destination.id)?.tips?.highlights || [];
+
+    tips.forEach((tip, tipIndex) => {
+      const photos = destination.photos || [];
+      const photo = photos[(tipIndex + 1) % Math.max(photos.length, 1)] || photos[0];
+      const entry = {
+        tip,
+        destination,
+        photo,
+        sortKey: destinationIndex * 10 + tipIndex,
+      };
+
+      if (/korte testtip/i.test(tip.text || "")) {
+        fallback.push(entry);
+      } else {
+        preferred.push(entry);
+      }
+    });
+  });
+
+  return [...preferred, ...fallback].slice(0, limit);
+}
+
+function collectFeaturePhotos(destinations, heroSrc) {
+  return destinations
+    .map((destination, index) => {
+      const photos = destination.photos || [];
+      if (!photos.length) {
+        return null;
+      }
+
+      const preferred =
+        photos.find((photo) => photo.src !== heroSrc) ||
+        photos[Math.min(index, photos.length - 1)];
+
+      return {
+        src: preferred.src,
+        alt: preferred.alt || destination.name,
+        label: destination.name,
+      };
+    })
+    .filter(Boolean);
+}
+
+function buildPlanningPreviewItems(destinations, status) {
+  const today = startOfDay(new Date());
+  const active = getActiveDestination(destinations, today);
+  const next = getNextDestination(destinations, today);
+  const first = destinations[0];
+
+  if (status.progress === 0 && first) {
+    return [
+      {
+        label: "Eerstvolgend",
+        text: first.travel
+          ? first.travel.split(".")[0] + "."
+          : `Vertrek naar ${first.name}`,
+      },
+      {
+        label: "Eerste stop",
+        text: `${first.name} · ${first.accommodation || first.dates}`,
+      },
+    ].slice(0, 2);
+  }
+
+  if (active) {
+    const items = [
+      {
+        label: "Nu",
+        text: `${active.name} · ${active.accommodation || active.dates}`,
+      },
+    ];
+
+    if (next) {
+      items.push({
+        label: "Daarna",
+        text: `${next.name} · ${next.dates}`,
+      });
+    } else if (active.travel) {
+      items.push({
+        label: "Let op",
+        text: active.travel.split(".")[0] + ".",
+      });
+    }
+
+    return items.slice(0, 2);
+  }
+
+  if (next) {
+    return [
+      {
+        label: "Volgende stop",
+        text: `${next.name} · ${next.dates}`,
+      },
+      next.accommodation
+        ? {
+            label: "Verblijf",
+            text: next.accommodation,
+          }
+        : null,
+    ].filter(Boolean);
+  }
+
+  return [
+    {
+      label: "Terugblik",
+      text: "Bekijk de volledige planning van de reis.",
+    },
+  ];
+}
+
+function renderReisHero(destinations, status) {
+  const heroDestination = getHeroDestination(destinations, status);
+  const photo = heroDestination?.photos?.[0];
+  const progressPercent = Math.round(status.progress * 100);
+
+  return `
+    <header class="reis-hero">
+      ${
+        photo
+          ? `<img
+              class="reis-hero-image"
+              src="${escapeHtml(photo.src)}"
+              alt="${escapeHtml(photo.alt || heroDestination.name)}"
+              fetchpriority="high"
+            >`
+          : ""
+      }
+      <div class="reis-hero-scrim" aria-hidden="true"></div>
+      <div class="reis-hero-content">
+        <h1 class="reis-title">Portugal Familievakantie 2026</h1>
+        <p class="reis-subtitle">17-daagse rondreis</p>
+        <p class="reis-status">${escapeHtml(status.label)}</p>
+        <div
+          class="reis-progress"
+          role="progressbar"
+          aria-valuemin="0"
+          aria-valuemax="100"
+          aria-valuenow="${progressPercent}"
+          aria-label="Voortgang van de reis"
+        >
+          <div class="reis-progress-track">
+            <span
+              class="reis-progress-value"
+              style="width: ${progressPercent}%"
+            ></span>
+          </div>
+        </div>
+      </div>
+    </header>
+  `;
+}
+
+function renderReisJourney(destinations, status) {
+  const stops = buildJourneyStops(destinations);
+  const currentIndex = status.currentId
+    ? destinations.findIndex((item) => item.id === status.currentId)
+    : -1;
+
+  const items = stops
+    .map((stop) => {
+      let stateClass = "";
+
+      if (stop.id === "arrival-lisbon") {
+        if (status.progress > 0) {
+          stateClass = " is-past";
+        }
+      } else if (status.currentId && stop.destinationId === status.currentId) {
+        stateClass = " is-current";
+      } else if (status.progress >= 1) {
+        stateClass = " is-past";
+      } else if (currentIndex > -1 && stop.destinationId) {
+        const stopIndex = destinations.findIndex(
+          (item) => item.id === stop.destinationId
+        );
+
+        if (stopIndex > -1 && stopIndex < currentIndex) {
+          stateClass = " is-past";
+        }
+      }
+
+      return `
+        <li class="reis-journey-item${stateClass}">
+          <p class="reis-journey-name">${escapeHtml(stop.name)}</p>
+          <p class="reis-journey-meta">${escapeHtml(stop.meta)}</p>
+        </li>
+      `;
+    })
+    .join("");
+
+  return `
+    <section class="reis-section" aria-labelledby="reis-journey-title">
+      <div class="reis-section-header">
+        <h2 class="reis-section-title" id="reis-journey-title">Route</h2>
+        <a class="reis-section-link" href="#route">Bekijk</a>
+      </div>
+      <ol class="reis-journey">${items}</ol>
+    </section>
+  `;
+}
+
+function renderReisPhotos(photos) {
+  if (!photos.length) {
+    return "";
+  }
+
+  const items = photos
+    .map(
+      (photo) => `
+        <figure class="reis-photo-wrap">
+          <button
+            type="button"
+            class="reis-photo"
+            data-reis-photo
+            data-src="${escapeHtml(photo.src)}"
+            data-alt="${escapeHtml(photo.alt)}"
+            aria-label="Bekijk foto van ${escapeHtml(photo.label)}"
+          >
+            <img
+              src="${escapeHtml(photo.src)}"
+              alt="${escapeHtml(photo.alt)}"
+              loading="lazy"
+            >
+          </button>
+          <figcaption class="reis-photo-label">${escapeHtml(photo.label)}</figcaption>
+        </figure>
+      `
+    )
+    .join("");
+
+  return `
+    <section class="reis-section" aria-labelledby="reis-photos-title">
+      <div class="reis-section-header">
+        <h2 class="reis-section-title" id="reis-photos-title">Foto&apos;s</h2>
+      </div>
+      <div class="reis-photos">${items}</div>
+    </section>
+  `;
+}
+
+function renderReisHighlights(highlights) {
+  if (!highlights.length) {
+    return "";
+  }
+
+  const items = highlights
+    .map((item) => {
+      const text = item.tip.text || "";
+      const photo = item.photo;
+
+      return `
+        <a
+          class="reis-highlight"
+          href="#todo/${encodeURIComponent(item.destination.id)}"
+        >
+          ${
+            photo
+              ? `<span class="reis-highlight-media">
+                  <img
+                    src="${escapeHtml(photo.src)}"
+                    alt=""
+                    loading="lazy"
+                  >
+                </span>`
+              : ""
+          }
+          <span>
+            <h3 class="reis-highlight-title">${escapeHtml(item.tip.title)}</h3>
+            ${
+              text
+                ? `<p class="reis-highlight-text">${escapeHtml(text)}</p>`
+                : ""
+            }
+            <p class="reis-highlight-meta">${escapeHtml(item.destination.name)}</p>
+          </span>
+        </a>
+      `;
+    })
+    .join("");
+
+  return `
+    <section class="reis-section" aria-labelledby="reis-highlights-title">
+      <div class="reis-section-header">
+        <h2 class="reis-section-title" id="reis-highlights-title">Hoogtepunten</h2>
+        <a class="reis-section-link" href="#todo">Meer</a>
+      </div>
+      <div class="reis-highlights">${items}</div>
+    </section>
+  `;
+}
+
+function renderReisPlanningPreview(destinations, status) {
+  const items = buildPlanningPreviewItems(destinations, status)
+    .map(
+      (item) => `
+        <div class="reis-preview-item">
+          <p class="reis-preview-label">${escapeHtml(item.label)}</p>
+          <p class="reis-preview-text">${escapeHtml(item.text)}</p>
+        </div>
+      `
+    )
+    .join("");
+
+  return `
+    <section class="reis-section" aria-labelledby="reis-preview-title">
+      <div class="reis-section-header">
+        <h2 class="reis-section-title" id="reis-preview-title">Planning</h2>
+      </div>
+      <div class="reis-preview">
+        ${items}
+        <a class="reis-preview-cta" href="#planning">Bekijk planning</a>
+      </div>
+    </section>
+  `;
+}
+
+function ensurePhotoViewer() {
+  if (photoViewer) {
+    return photoViewer;
+  }
+
+  photoViewer = document.createElement("div");
+  photoViewer.className = "reis-photo-viewer";
+  photoViewer.hidden = true;
+  photoViewer.innerHTML = `
+    <button type="button" class="reis-photo-viewer-close" aria-label="Sluiten">×</button>
+    <img alt="">
+  `;
+  document.body.appendChild(photoViewer);
+
+  const close = () => closePhotoViewer();
+
+  photoViewer
+    .querySelector(".reis-photo-viewer-close")
+    .addEventListener("click", close);
+
+  photoViewer.addEventListener("click", (event) => {
+    if (event.target === photoViewer) {
+      close();
+    }
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && photoViewer?.classList.contains("is-open")) {
+      close();
+    }
+  });
+
+  return photoViewer;
+}
+
+function openPhotoViewer(src, alt) {
+  const viewer = ensurePhotoViewer();
+  const image = viewer.querySelector("img");
+  image.src = src;
+  image.alt = alt || "";
+  viewer.hidden = false;
+  requestAnimationFrame(() => {
+    viewer.classList.add("is-open");
+  });
+}
+
+function closePhotoViewer() {
+  if (!photoViewer) {
+    return;
+  }
+
+  photoViewer.classList.remove("is-open");
+  window.setTimeout(() => {
+    if (!photoViewer.classList.contains("is-open")) {
+      photoViewer.hidden = true;
+      photoViewer.querySelector("img").removeAttribute("src");
+    }
+  }, 220);
+}
+
+function initReisInteractions(root) {
+  root.querySelectorAll("[data-reis-photo]").forEach((button) => {
+    button.addEventListener("click", () => {
+      openPhotoViewer(button.dataset.src, button.dataset.alt);
+    });
+  });
+}
+
+function renderReis(destinations) {
+  const datedDestinations = withDateRanges(destinations);
+  const status = getTripStatus(datedDestinations);
+  const heroDestination = getHeroDestination(datedDestinations, status);
+  const heroSrc = heroDestination?.photos?.[0]?.src || "";
+  const highlights = collectHighlights(datedDestinations, 4);
+  const photos = collectFeaturePhotos(datedDestinations, heroSrc);
+
+  return `
+    ${renderReisHero(datedDestinations, status)}
+    ${renderReisJourney(datedDestinations, status)}
+    ${renderReisPhotos(photos)}
+    ${renderReisHighlights(highlights)}
+    ${renderReisPlanningPreview(datedDestinations, status)}
+  `;
+}
+
+function normalizeTab(tab) {
+  if (tab === "things-to-do") {
+    return "todo";
+  }
+
+  if (VALID_TABS.includes(tab)) {
+    return tab;
+  }
+
+  return "reis";
 }
 
 function parseHash() {
   const hash = window.location.hash.replace(/^#/, "");
 
-  if (!hash || hash === "planning") {
+  if (!hash || hash === "reis") {
+    return { tab: "reis", locationId: null };
+  }
+
+  if (hash === "route") {
+    return { tab: "route", locationId: null };
+  }
+
+  if (hash === "planning") {
     return { tab: "planning", locationId: null };
   }
 
-  if (hash === "things-to-do") {
-    return { tab: "things-to-do", locationId: null };
+  if (hash === "todo" || hash === "things-to-do") {
+    return { tab: "todo", locationId: null };
+  }
+
+  if (hash.startsWith("todo/")) {
+    return {
+      tab: "todo",
+      locationId: decodeURIComponent(hash.slice("todo/".length)),
+    };
   }
 
   if (hash.startsWith("things-to-do/")) {
     return {
-      tab: "things-to-do",
+      tab: "todo",
       locationId: decodeURIComponent(hash.slice("things-to-do/".length)),
     };
   }
 
-  return { tab: "planning", locationId: null };
+  return { tab: "reis", locationId: null };
 }
 
 function buildHash(tab, locationId) {
-  if (tab === "planning") {
-    return "planning";
+  const normalizedTab = normalizeTab(tab);
+
+  if (normalizedTab === "todo" && locationId) {
+    return `todo/${locationId}`;
   }
 
-  if (locationId) {
-    return `things-to-do/${locationId}`;
-  }
-
-  return "things-to-do";
+  return normalizedTab;
 }
 
 function setActiveTab(tab, { focusTab = false } = {}) {
-  const isPlanning = tab === "planning";
+  const normalizedTab = normalizeTab(tab);
 
-  tabPlanning.hidden = !isPlanning;
-  tabThingsToDo.hidden = isPlanning;
+  Object.entries(tabPanels).forEach(([name, panel]) => {
+    if (!panel) {
+      return;
+    }
+
+    panel.hidden = name !== normalizedTab;
+  });
 
   tabButtons.forEach((button) => {
-    const isActive = button.dataset.tab === tab;
+    const isActive = button.dataset.tab === normalizedTab;
     button.classList.toggle("is-active", isActive);
     button.setAttribute("aria-selected", String(isActive));
     button.tabIndex = isActive ? 0 : -1;
   });
 
   if (focusTab) {
-    const activeButton = tabBar.querySelector(`.tab-btn[data-tab="${tab}"]`);
+    const activeButton = tabBar.querySelector(
+      `.tab-btn[data-tab="${normalizedTab}"]`
+    );
     activeButton?.focus();
   }
-}
-
-function scrollToLocation(locationId) {
-  if (!locationId) {
-    return;
-  }
-
-  const section = document.getElementById(`tips-${locationId}`);
-  if (!section) {
-    return;
-  }
-
-  section.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
 function applyRouteFromHash() {
   const route = parseHash();
   setActiveTab(route.tab);
 
-  if (route.locationId) {
-    pendingScrollLocationId = route.locationId;
-    requestAnimationFrame(() => {
-      if (pendingScrollLocationId) {
-        scrollToLocation(pendingScrollLocationId);
-        pendingScrollLocationId = null;
-      }
-    });
-  } else {
-    pendingScrollLocationId = null;
+  if (route.tab === "todo") {
+    renderTodoView(route.locationId);
+    window.scrollTo({ top: 0, behavior: "auto" });
   }
 }
 
@@ -454,16 +1382,362 @@ function initTabNavigation() {
   window.addEventListener("hashchange", applyRouteFromHash);
 }
 
+function formatDutchDayLabel(date) {
+  const monthNames = Object.keys(DUTCH_MONTHS);
+  return `${date.getDate()} ${monthNames[date.getMonth()]}`;
+}
+
+function formatTripRangeLabel(destinations) {
+  const dated = withDateRanges(destinations);
+  const bounds = getTripBounds(dated);
+
+  if (!bounds) {
+    return "";
+  }
+
+  const startLabel = formatDutchDayLabel(bounds.start);
+  const endLabel = formatDutchDayLabel(bounds.end);
+
+  return `${startLabel} – ${endLabel} ${bounds.start.getFullYear()}`;
+}
+
+function getMapsUrl(destination) {
+  if (destination.lat != null && destination.lng != null) {
+    return `https://www.google.com/maps?q=${destination.lat},${destination.lng}&hl=nl`;
+  }
+
+  if (destination.address) {
+    return `https://www.google.com/maps?q=${encodeURIComponent(destination.address)}&hl=nl`;
+  }
+
+  return null;
+}
+
+function parseTravelEvents(travel) {
+  if (!travel) {
+    return [];
+  }
+
+  return String(travel)
+    .split(/(?<=\.)\s+/)
+    .map((sentence) => sentence.trim())
+    .filter(Boolean)
+    .map((sentence) => {
+      const lower = sentence.toLowerCase();
+
+      if (lower.includes("vlucht") || lower.includes("aankomst")) {
+        return {
+          type: "flight",
+          title: "Vlucht",
+          text: sentence.replace(/\.$/, ""),
+        };
+      }
+
+      if (lower.includes("huurauto") && lower.includes("ingeleverd")) {
+        return {
+          type: "car",
+          title: "Huurauto inleveren",
+          text: sentence.replace(/\.$/, ""),
+        };
+      }
+
+      if (lower.includes("huurauto")) {
+        return {
+          type: "car",
+          title: "Huurauto ophalen",
+          text: sentence.replace(/\.$/, ""),
+        };
+      }
+
+      return {
+        type: "travel",
+        title: "Onderweg",
+        text: sentence.replace(/\.$/, ""),
+      };
+    });
+}
+
+function buildPlanningTimeline(destinations) {
+  const dated = withDateRanges(destinations);
+  const days = [];
+  const today = startOfDay(new Date());
+
+  dated.forEach((destination) => {
+    if (!destination.startDate || !destination.endDate) {
+      return;
+    }
+
+    const dayPlans = getLocationTips(destination.id)?.dayPlans || [];
+    let planIndex = 0;
+    const cursor = startOfDay(destination.startDate);
+    const end = startOfDay(destination.endDate);
+    let stayOffset = 0;
+
+    while (cursor < end) {
+      const events = [];
+      const isCheckIn = stayOffset === 0;
+
+      if (isCheckIn) {
+        parseTravelEvents(destination.travel).forEach((event) => {
+          events.push(event);
+        });
+
+        events.push({
+          type: "stay",
+          title: "Accommodatie",
+          text: destination.accommodation || destination.name,
+          meta: [destination.address, destination.nights ? `${destination.nights} nachten` : null]
+            .filter(Boolean)
+            .join(" · "),
+          mapsUrl: getMapsUrl(destination),
+          tipsHref: `#todo/${destination.id}`,
+        });
+      } else if (planIndex < dayPlans.length) {
+        const dayPlan = dayPlans[planIndex];
+        planIndex += 1;
+        events.push({
+          type: "idea",
+          title: dayPlan.title || "Dagidee",
+          text: "Mogelijke dagindeling",
+          dayPlan,
+        });
+      } else {
+        events.push({
+          type: "stay",
+          title: "Verblijf",
+          text: destination.accommodation || destination.name,
+          meta: destination.name,
+        });
+      }
+
+      days.push({
+        key: cursor.toISOString().slice(0, 10),
+        date: new Date(cursor),
+        label: formatDutchDayLabel(cursor),
+        locationName: destination.name,
+        locationId: destination.id,
+        isToday: cursor.getTime() === today.getTime(),
+        events,
+      });
+
+      cursor.setDate(cursor.getDate() + 1);
+      stayOffset += 1;
+    }
+  });
+
+  return days;
+}
+
+function renderPlanningEventIcon(type) {
+  if (type === "flight") {
+    return `
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M3 13.5 21 4l-3.2 9.2L21 20l-18-5.5 5.2-1Z" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linejoin="round"/>
+      </svg>
+    `;
+  }
+
+  if (type === "car") {
+    return `
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M4 15.5h16l-1.2-4.2a2 2 0 0 0-1.9-1.3H7.1a2 2 0 0 0-1.9 1.3L4 15.5Z" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linejoin="round"/>
+        <path d="M6.5 15.5v2M17.5 15.5v2M7 18.5h2M15 18.5h2" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>
+      </svg>
+    `;
+  }
+
+  if (type === "idea") {
+    return `
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M9 18h6M10 21h4M8 10a4 4 0 1 1 8 0c0 1.8-1 2.7-2 3.5-.7.6-1 1.2-1 2.5h-2c0-1.3-.3-1.9-1-2.5-1-.8-2-1.7-2-3.5Z" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    `;
+  }
+
+  return `
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M4.5 10.5V20h15V10.5" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linejoin="round"/>
+      <path d="M3 11.5 12 4l9 7.5" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  `;
+}
+
+function renderPlanningDayPlanDetails(dayPlan) {
+  const steps = (dayPlan.steps || [])
+    .map(
+      (step) => `
+        <li class="planning-step">
+          ${step.time ? `<p class="planning-step-time">${escapeHtml(step.time)}</p>` : ""}
+          ${step.title ? `<p class="planning-step-title">${escapeHtml(step.title)}</p>` : ""}
+          ${step.text ? `<p class="planning-step-text">${escapeHtml(step.text)}</p>` : ""}
+        </li>
+      `
+    )
+    .join("");
+
+  return `<ol class="planning-steps">${steps}</ol>`;
+}
+
+function renderPlanningEvent(event, index) {
+  const links = [];
+
+  if (event.mapsUrl) {
+    links.push(
+      `<a class="planning-event-link" href="${escapeHtml(event.mapsUrl)}" target="_blank" rel="noopener noreferrer">Open in Google Maps</a>`
+    );
+  }
+
+  if (event.tipsHref) {
+    links.push(
+      `<a class="planning-event-link" href="${escapeHtml(event.tipsHref)}">Bekijk tips</a>`
+    );
+  }
+
+  if (event.type === "idea" && event.dayPlan) {
+    return `
+      <article class="planning-event planning-event--idea" data-planning-accordion>
+        <button
+          type="button"
+          class="planning-event-trigger"
+          aria-expanded="false"
+          data-planning-accordion-trigger
+        >
+          <span class="planning-event-icon" aria-hidden="true">
+            ${renderPlanningEventIcon(event.type)}
+          </span>
+          <span class="planning-event-copy">
+            <span class="planning-event-title">${escapeHtml(event.title)}</span>
+            <span class="planning-event-text">${escapeHtml(event.text || "Tik voor het dagplan")}</span>
+          </span>
+          <span class="planning-event-chevron" aria-hidden="true"></span>
+        </button>
+        <div class="planning-event-panel">
+          <div class="planning-event-panel-inner">
+            ${renderPlanningDayPlanDetails(event.dayPlan)}
+          </div>
+        </div>
+      </article>
+    `;
+  }
+
+  return `
+    <article class="planning-event planning-event--${escapeHtml(event.type)}">
+      <span class="planning-event-icon" aria-hidden="true">
+        ${renderPlanningEventIcon(event.type)}
+      </span>
+      <div class="planning-event-copy">
+        <h3 class="planning-event-title">${escapeHtml(event.title)}</h3>
+        ${event.text ? `<p class="planning-event-text">${escapeHtml(event.text)}</p>` : ""}
+        ${event.meta ? `<p class="planning-event-meta">${escapeHtml(event.meta)}</p>` : ""}
+        ${links.length ? `<div class="planning-event-links">${links.join("")}</div>` : ""}
+      </div>
+    </article>
+  `;
+}
+
+function renderPlanning(destinations) {
+  const days = buildPlanningTimeline(destinations);
+  const rangeLabel = formatTripRangeLabel(destinations);
+
+  if (!days.length) {
+    return `
+      <section class="planning-screen">
+        <header class="planning-header">
+          <h1 class="planning-title">Planning</h1>
+        </header>
+        <p class="planning-empty">De planning wordt nog toegevoegd.</p>
+      </section>
+    `;
+  }
+
+  const daysHtml = days
+    .map((day) => {
+      const eventsHtml = day.events
+        .map((event, index) => renderPlanningEvent(event, index))
+        .join("");
+
+      return `
+        <section class="planning-day${day.isToday ? " is-today" : ""}" aria-labelledby="planning-day-${day.key}">
+          <header class="planning-day-header">
+            <div>
+              <h2 class="planning-day-title" id="planning-day-${day.key}">${escapeHtml(day.label)}</h2>
+              <p class="planning-day-location">${escapeHtml(day.locationName)}</p>
+            </div>
+            ${day.isToday ? `<span class="planning-day-badge">Vandaag</span>` : ""}
+          </header>
+          <div class="planning-events">
+            ${eventsHtml}
+          </div>
+        </section>
+      `;
+    })
+    .join("");
+
+  return `
+    <section class="planning-screen">
+      <header class="planning-header">
+        <h1 class="planning-title">Planning</h1>
+        ${rangeLabel ? `<p class="planning-subtitle">${escapeHtml(rangeLabel)}</p>` : ""}
+      </header>
+      <div class="planning-timeline">
+        ${daysHtml}
+      </div>
+    </section>
+  `;
+}
+
+function initPlanningInteractions() {
+  if (planningInteractionsBound) {
+    return;
+  }
+
+  planningInteractionsBound = true;
+
+  planningContainer.addEventListener("click", (event) => {
+    const trigger = event.target.closest("[data-planning-accordion-trigger]");
+    if (!trigger) {
+      return;
+    }
+
+    const accordion = trigger.closest("[data-planning-accordion]");
+    if (!accordion) {
+      return;
+    }
+
+    const willOpen = !accordion.classList.contains("is-open");
+
+    planningContainer.querySelectorAll("[data-planning-accordion].is-open").forEach((item) => {
+      item.classList.remove("is-open");
+      item
+        .querySelector("[data-planning-accordion-trigger]")
+        ?.setAttribute("aria-expanded", "false");
+    });
+
+    if (willOpen) {
+      accordion.classList.add("is-open");
+      trigger.setAttribute("aria-expanded", "true");
+    }
+  });
+}
+
 function showError(message) {
-  container.innerHTML = `<p class="error">${message}</p>`;
+  planningContainer.innerHTML = `<p class="error">${message}</p>`;
 }
 
 function showThingsError(message) {
   thingsContainer.innerHTML = `<p class="error">${message}</p>`;
 }
 
+function showReisError(message) {
+  reisContainer.innerHTML = `<p class="error">${message}</p>`;
+}
+
 async function loadApp() {
   try {
+    if (!window.location.hash) {
+      history.replaceState(null, "", "#reis");
+    }
+
     const [destinationsResponse, thingsResponse] = await Promise.all([
       fetch("data/destinations.json"),
       fetch("data/things-to-do.json"),
@@ -479,18 +1753,22 @@ async function loadApp() {
 
     const destinations = await destinationsResponse.json();
     thingsData = await thingsResponse.json();
+    appDestinations = destinations;
 
-    container.innerHTML = "";
-    destinations.forEach((destination) => {
-      container.appendChild(renderCard(destination));
-    });
-    initGalleries(container);
+    reisContainer.innerHTML = renderReis(destinations);
+    reisContainer.classList.add("reis-animate");
+    initReisInteractions(reisContainer);
 
-    thingsContainer.innerHTML = renderThingsToDo(destinations);
+    planningContainer.innerHTML = renderPlanning(destinations);
+    planningContainer.classList.add("planning-animate");
+    initPlanningInteractions();
+
+    initTodoInteractions();
 
     initTabNavigation();
     applyRouteFromHash();
   } catch (error) {
+    showReisError(error.message);
     showError(error.message);
     showThingsError(error.message);
   }
